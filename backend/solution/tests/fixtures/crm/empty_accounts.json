@@ -1,0 +1,8 @@
+{
+  "client_record": {
+    "client_id": "abc123",
+    "full_name": "Jane Doe",
+    "accounts": []
+  },
+  "meta": { "retrieved_at": "2026-10-03T16:00:00.000Z", "source": "legacy-crm-v2" }
+}

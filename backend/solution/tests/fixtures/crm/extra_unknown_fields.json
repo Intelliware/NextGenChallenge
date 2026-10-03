@@ -1,0 +1,22 @@
+{
+  "client_record": {
+    "client_id": "abc123",
+    "full_name": "Jane Doe",
+    "advisor_code": "ADV-77",
+    "kyc_status": "verified",
+    "accounts": [
+      {
+        "acct_ref": "P-9001",
+        "acct_nickname": "Taxable Brokerage",
+        "acct_type": "NON_REG",
+        "legacy_flags": { "migrated": true, "batch": 42 },
+        "curr_val": { "amt": 48930, "ccy": "CAD", "fx_src": "BOC" },
+        "chg_1d": { "amt": 30, "pct": 0.0006134969325153375, "basis": "close" },
+        "since_inception_pct": 0.187,
+        "since_inception_amt": 7711.9
+      }
+    ]
+  },
+  "meta": { "retrieved_at": "2026-10-03T16:00:00.000Z", "source": "legacy-crm-v2", "trace": "abc-def" },
+  "debug": { "node": "crm-03" }
+}

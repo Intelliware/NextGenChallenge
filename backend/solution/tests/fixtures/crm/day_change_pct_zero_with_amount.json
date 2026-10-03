@@ -1,0 +1,16 @@
+{
+  "client_record": {
+    "client_id": "abc123",
+    "full_name": "Jane Doe",
+    "accounts": [
+      {
+        "acct_ref": "P-9001",
+        "acct_nickname": "Newly Funded Account",
+        "curr_val": { "amt": 500, "ccy": "CAD" },
+        "chg_1d": { "amt": 500, "pct": 0 },
+        "since_inception_pct": 0.25
+      }
+    ]
+  },
+  "meta": { "retrieved_at": "2026-10-03T16:00:00.000Z", "source": "legacy-crm-v2" }
+}

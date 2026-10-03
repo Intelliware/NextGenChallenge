@@ -1,0 +1,30 @@
+{
+  "client_record": {
+    "client_id": "abc123",
+    "full_name": "Jane Doe",
+    "accounts": [
+      {
+        "acct_ref": "P-9001",
+        "acct_nickname": "Taxable Brokerage",
+        "curr_val": { "amt": 48930, "ccy": "CAD" },
+        "chg_1d": { "amt": 30, "pct": 0.0006134969325153375 },
+        "since_inception_pct": 0.187
+      },
+      {
+        "acct_ref": "P-9002",
+        "acct_nickname": "Retirement Account",
+        "curr_val": { "amt": 500, "ccy": "CAD" },
+        "chg_1d": { "amt": 500, "pct": 0 },
+        "since_inception_pct": 0.25
+      },
+      {
+        "acct_ref": "P-EMPTY",
+        "acct_nickname": "Empty Account",
+        "curr_val": { "amt": 0, "ccy": "CAD" },
+        "chg_1d": { "amt": 0, "pct": 0 },
+        "since_inception_pct": 0
+      }
+    ]
+  },
+  "meta": { "retrieved_at": "2026-10-03T16:00:00.000Z", "source": "legacy-crm-v2" }
+}

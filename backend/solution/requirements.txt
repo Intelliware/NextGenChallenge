@@ -1,0 +1,7 @@
+# Runtime dependencies, pinned to the exact versions the solution was built and tested with.
+# Upgrade deliberately (together), then re-run the full test suite.
+fastapi==0.142.2
+uvicorn[standard]==0.54.0
+httpx==0.28.1
+pydantic==2.13.5
+pydantic-settings==2.15.0

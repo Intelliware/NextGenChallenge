@@ -1,0 +1,17 @@
+[project]
+name = "portfolio-backend"
+version = "1.0.0"
+description = "Wealth management portfolio dashboard backend"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
+markers = [
+    "integration: needs the supplied mock CRM running on localhost:4002 (skipped automatically otherwise)",
+]

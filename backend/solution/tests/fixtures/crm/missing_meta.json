@@ -1,0 +1,15 @@
+{
+  "client_record": {
+    "client_id": "abc123",
+    "full_name": "Jane Doe",
+    "accounts": [
+      {
+        "acct_ref": "P-9001",
+        "acct_nickname": "Taxable Brokerage",
+        "curr_val": { "amt": 48930, "ccy": "CAD" },
+        "chg_1d": { "amt": 30, "pct": 0.0006134969325153375 },
+        "since_inception_pct": 0.187
+      }
+    ]
+  }
+}

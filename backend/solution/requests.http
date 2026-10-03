@@ -1,0 +1,70 @@
+# Task 1 requests. Use an HTTP client that supports .http files (VS Code REST Client, JetBrains),
+# or copy each request into curl.
+@backend = http://localhost:3000
+@crm = http://localhost:4002
+@fake = http://localhost:4003
+
+### --- Supplied mock CRM (node backend/mock-crm.mjs) ---
+
+### Mapped metadata
+GET {{backend}}/portfolios/P-9001
+
+### Requested account is not first in the CRM's list
+GET {{backend}}/portfolios/P-9002
+
+### Empty account: zeros stay zeros
+GET {{backend}}/portfolios/P-EMPTY
+
+### Unknown account -> 404
+GET {{backend}}/portfolios/UNKNOWN
+
+### Invalid id -> 400, CRM is not called
+GET {{backend}}/portfolios/bad%20id
+
+### Echo a caller-supplied request id
+GET {{backend}}/portfolios/P-9001
+X-Request-ID: my-trace-123
+
+### Liveness / readiness
+GET {{backend}}/health
+
+###
+GET {{backend}}/health/ready
+
+### Set the mock's global mode: ok | auto | error | timeout | missing | nested
+POST {{crm}}/__control
+Content-Type: application/json
+
+{ "mode": "timeout" }
+
+### Inspect mock call counts
+GET {{crm}}/__stats
+
+### --- Scenario fake CRM (python scripts/fake_crm.py; backend started with CRM_BASE_URL={{fake}}) ---
+
+### List scenarios
+GET {{fake}}/__scenarios
+
+### Pick a scenario, then call {{backend}}/portfolios/P-9001
+POST {{fake}}/__control
+Content-Type: application/json
+
+{ "scenario": "invalid_number_types" }
+
+### Make every CRM call slow (backend should return 504 after 3s)
+POST {{fake}}/__control
+Content-Type: application/json
+
+{ "scenario": "ok_p9001", "slow_ms": 4000 }
+
+### Force a CRM status code (503 is retried once; 500 is not)
+POST {{fake}}/__control
+Content-Type: application/json
+
+{ "scenario": "ok_p9001", "slow_ms": 0, "status": 503 }
+
+### Reset
+POST {{fake}}/__control
+Content-Type: application/json
+
+{ "scenario": "ok_p9001", "slow_ms": 0, "status": null }
