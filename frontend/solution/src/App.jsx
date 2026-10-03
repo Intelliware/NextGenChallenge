@@ -1,7 +1,7 @@
-import { Routes, Route } from 'react-router-dom'
+import { Navigate, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import Home from './pages/Home'
-import Accounts from './pages/Accounts'
+import AccountDetail from './pages/AccountDetail'
 import PortfolioProvider from './portfolio/PortfolioProvider'
 
 // Routes of the app. PortfolioProvider wraps them so the selected account survives navigation;
@@ -12,7 +12,9 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="accounts" element={<Accounts />} />
+          {/* Account list now lives on the dashboard */}
+          <Route path="accounts" element={<Navigate to="/" replace />} />
+          <Route path="accounts/:accountId" element={<AccountDetail />} />
         </Route>
       </Routes>
     </PortfolioProvider>

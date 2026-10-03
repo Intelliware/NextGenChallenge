@@ -1,27 +1,20 @@
 import { screen } from '@testing-library/react'
 import { Route, Routes } from 'react-router-dom'
 import { describe, expect, test } from 'vitest'
-import { makePortfolio, renderWithContext } from '../test/utils'
+import { renderWithContext } from '../test/utils'
 import Footer from './Footer'
 import Layout from './Layout'
 import Navbar from './Navbar'
 
 describe('Navbar', () => {
-  test('hides Home until an account is selected', () => {
-    renderWithContext(<Navbar />, { portfolio: makePortfolio({ accountId: null }) })
-    expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Accounts' })).toHaveAttribute('href', '/accounts')
-  })
-
-  test('shows Home once an account is selected', () => {
+  test('always links Home to the dashboard', () => {
     renderWithContext(<Navbar />)
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
   })
 
-  test('keeps the mock query string on its links', () => {
-    renderWithContext(<Navbar />, { route: '/accounts?scenario=empty' })
+  test('keeps the mock query string on its link', () => {
+    renderWithContext(<Navbar />, { route: '/accounts/P-9001?scenario=empty' })
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/?scenario=empty')
-    expect(screen.getByRole('link', { name: 'Accounts' })).toHaveAttribute('href', '/accounts?scenario=empty')
   })
 })
 

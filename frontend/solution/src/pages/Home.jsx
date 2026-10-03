@@ -1,36 +1,26 @@
-import { useContext, useMemo } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
-import HoldingsTable from '../components/HoldingsTable'
-import PortfolioValueChart from '../components/PortfolioValueChart'
-import SummaryCard from '../components/SummaryCard'
-import { PortfolioContext } from '../portfolio/PortfolioContext'
+import AccountTile from '../components/AccountTile'
+import OverviewPanel from '../components/OverviewPanel'
 import usePortfolios from '../portfolio/usePortfolios'
 
-// Dashboard for the selected account: summary card, value chart and holdings table.
-// Redirects to /accounts until an account is selected.
+// Dashboard: combined overview of every account (figures + value chart), then one tile per
+// account linking to its detail page. One usePortfolios load feeds both.
 export default function Home() {
-  const { accountId } = useContext(PortfolioContext)
-  const { search } = useLocation()
-  // The value chart covers every account, not just the selected one
+  // One load feeds both the combined overview and the per-account tiles
   const { status, portfolios, error } = usePortfolios()
-  const histories = useMemo(() => portfolios.map((p) => p.performanceHistory ?? []), [portfolios])
-
-  // The dashboard needs an account: send the user to pick one first (keeping any mock ?scenario=)
-  if (!accountId) return <Navigate to={{ pathname: '/accounts', search }} replace />
 
   return (
     <>
       <h1>Portfolio Overview</h1>
-      <SummaryCard />
-      {status === 'loading' && portfolios.length === 0 && <p>Loading portfolio history…</p>}
-      {status === 'error' && <p role="alert">{error.message}</p>}
-      {portfolios.length > 0 && (
-        <PortfolioValueChart
-          histories={histories}
-          title="Total value (all accounts)"
-        />
-      )}
-      <HoldingsTable />
+      <OverviewPanel status={status} portfolios={portfolios} error={error} />
+      <section className="account-tiles" aria-label="Accounts">
+        <h2>Accounts</h2>
+        {status === 'success' && portfolios.length === 0 && <p>No accounts found.</p>}
+        <div className="account-tiles__grid">
+          {portfolios.map((p) => (
+            <AccountTile key={p.accountId} accountId={p.accountId} portfolio={p.portfolio} />
+          ))}
+        </div>
+      </section>
     </>
   )
 }

@@ -4,15 +4,20 @@ import { describe, expect, test, vi } from 'vitest'
 import App from './App'
 import CurrencyProvider from './currency/CurrencyProvider'
 
-vi.mock('./portfolio/api', () => ({
-  fetchAccounts: vi.fn().mockResolvedValue([]),
-  fetchPortfolio: vi.fn(),
-  fetchExchangeRate: vi.fn().mockResolvedValue({ CADtoUSD: 0.73 }),
-}))
+// vi.mock is hoisted above imports, so the sample data is loaded inside the factory
+vi.mock('./portfolio/api', async () => {
+  const { SAMPLE_PORTFOLIO } = await import('./test/utils')
+  return {
+    fetchAccounts: vi.fn().mockResolvedValue([{ accountId: 'P-9001' }]),
+    fetchPortfolio: vi.fn().mockResolvedValue(SAMPLE_PORTFOLIO),
+    fetchExchangeRate: vi.fn().mockResolvedValue({ CADtoUSD: 0.73 }),
+  }
+})
+// jsdom has no canvas; the chart has its own tests
+vi.mock('./components/PortfolioValueChart', () => ({ default: ({ title }) => <p>{title}</p> }))
 
 // The real app (both providers, routes and layout) starting at `route`
 function renderApp(route) {
-  vi.spyOn(console, 'log').mockImplementation(() => {})
   return render(
     <MemoryRouter initialEntries={[route]}>
       <CurrencyProvider>
@@ -23,15 +28,22 @@ function renderApp(route) {
 }
 
 describe('App', () => {
-  test('sends the dashboard to the accounts page until an account is selected', async () => {
+  test('shows the dashboard inside the layout at /', async () => {
     renderApp('/')
-    expect(await screen.findByRole('heading', { name: 'Accounts' })).toBeInTheDocument()
-  })
-
-  test('renders the accounts page inside the layout', async () => {
-    renderApp('/accounts')
-    expect(await screen.findByText('No accounts found.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Portfolio Overview' })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: /Taxable Brokerage/ })).toBeInTheDocument()
     expect(screen.getByRole('banner')).toHaveTextContent('Portfolio Dashboard')
     expect(screen.getByRole('button', { name: 'CAD' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  test('redirects the old /accounts route to the dashboard', () => {
+    renderApp('/accounts')
+    expect(screen.getByRole('heading', { name: 'Portfolio Overview' })).toBeInTheDocument()
+  })
+
+  test('shows an account at /accounts/:accountId', async () => {
+    renderApp('/accounts/P-9001')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Taxable Brokerage' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Holdings')).toBeInTheDocument()
   })
 })

@@ -17,7 +17,10 @@ export default function usePortfolios(accountIds) {
       : fetchAccounts({ signal }).then((accounts) => accounts.map((a) => a.accountId))
 
     ids
-      .then((list) => Promise.all(list.map((id) => fetchPortfolio(id, { signal }))))
+      .then((list) => Promise.all(list.map((id) =>
+        // Tag each response with its id so callers can link back to the account
+        fetchPortfolio(id, { signal }).then((data) => ({ accountId: id, ...data })),
+      )))
       .then((portfolios) => setResult({ settledFor: idsKey, portfolios, error: null }))
       .catch((error) => {
         if (error.name === 'AbortError') return

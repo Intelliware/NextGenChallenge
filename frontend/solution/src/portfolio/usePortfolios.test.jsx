@@ -19,6 +19,8 @@ describe('usePortfolios', () => {
     expect(result.current.status).toBe('loading')
     await waitFor(() => expect(result.current.status).toBe('success'))
     expect(result.current.portfolios.map((p) => p.portfolio.accountId)).toEqual(['P-9001', 'P-9002'])
+    // Each response is tagged with the id it was loaded for
+    expect(result.current.portfolios.map((p) => p.accountId)).toEqual(['P-9001', 'P-9002'])
   })
 
   test('loads only the given ids without fetching the account list', async () => {

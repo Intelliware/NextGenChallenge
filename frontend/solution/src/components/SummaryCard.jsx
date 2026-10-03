@@ -24,13 +24,16 @@ function Stat({ label, value, tone = 'neutral' }) {
   )
 }
 
-// At-a-glance health of the selected account: market value, day change ($ and %) and total return.
-// Reads the selected portfolio from PortfolioContext; money follows the CAD/USD toggle.
-export default function SummaryCard() {
+// At-a-glance figures: market value, day change ($ and %) and, optionally, total return.
+// By default it shows the selected account from PortfolioContext (with its loading and error
+// states); pass `summary` (+ `loading`) to show other figures, e.g. all accounts combined.
+// Money follows the CAD/USD toggle.
+export default function SummaryCard({ summary, loading = false, showTotalReturn = true }) {
   const { status, data, error } = useContext(PortfolioContext) ?? {}
   const { formatMoney, formatSignedMoney } = useCurrency()
+  const usesContext = summary === undefined
 
-  if (status === 'error') {
+  if (usesContext && status === 'error') {
     return (
       <section className="summary-card" role="alert">
         Could not load portfolio: {error?.message ?? 'unknown error'}
@@ -38,11 +41,11 @@ export default function SummaryCard() {
     )
   }
 
-  if (!data) {
+  if (usesContext ? !data : loading) {
     return <section className="summary-card">Loading portfolio…</section>
   }
 
-  const portfolio = data.portfolio ?? {}
+  const portfolio = (usesContext ? data.portfolio : summary) ?? {}
   // Money fields are CAD from the API; useCurrency converts them to the selected currency
   const { totalMarketValue, dayChangeAmount, dayChangePercent, totalReturnSinceInception } = portfolio
 
@@ -62,11 +65,13 @@ export default function SummaryCard() {
       <dl className="summary-card__stats">
         <Stat label="Total market value" value={formatMoney(totalMarketValue)} />
         <Stat label="Day change" value={dayChange} tone={dayTone} />
-        <Stat
-          label="Total return since inception"
-          value={withSign(totalReturn, formatPercent(totalReturn))}
-          tone={trend(totalReturn)}
-        />
+        {showTotalReturn && (
+          <Stat
+            label="Total return since inception"
+            value={withSign(totalReturn, formatPercent(totalReturn))}
+            tone={trend(totalReturn)}
+          />
+        )}
       </dl>
     </section>
   )

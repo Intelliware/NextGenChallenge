@@ -35,41 +35,6 @@ body {
   border-top: 1px solid #ddd;
 }
 
-.account-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  overflow: hidden;
-}
-
-.account-card-header {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border: none;
-  background: #f7f7f7;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.account-card-body {
-  margin: 0;
-  padding: 0.5rem 1rem 1rem;
-}
-
-.account-card-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.25rem 0;
-}
-
-.account-card-row dd {
-  margin: 0;
-}
-
 /* Floating currency switch: fixed so it stays visible without scrolling */
 .currency-toggle {
   position: fixed;
@@ -126,20 +91,30 @@ body {
   padding-right: 9rem;
 }
 
-.account-card--selected {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 1px #2563eb;
-}
-
-.account-card-footer {
+.overview-panel {
   display: flex;
-  justify-content: flex-end;
-  padding: 0.5rem 1rem;
+  flex-direction: column;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
 }
 
-.go-to-dashboard {
-  font: inherit;
-  padding: 0.5rem 1rem;
+/* Inner sections drop their own card styling; a divider separates them */
+.overview-panel .summary-card,
+.overview-panel .value-chart {
+  margin-top: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.overview-panel .value-chart {
+  border-top: 1px solid #ddd;
+}
+
+.overview-panel > p {
+  margin: 0;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #ddd;
 }
 
 .summary-card {
@@ -297,4 +272,56 @@ body {
 .holdings-table__empty {
   text-align: center;
   color: #666;
+}
+
+.account-tiles h2 {
+  margin: 1.5rem 0 0.75rem;
+}
+
+.account-tiles__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.account-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.account-tile:hover,
+.account-tile:focus-visible {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.account-tile__label {
+  font-weight: 600;
+}
+
+.account-tile__value {
+  font-size: 1.25rem;
+}
+
+.account-tile__change {
+  font-size: 0.875rem;
+}
+
+.account-tile__change--positive {
+  color: #1a7f37;
+}
+
+.account-tile__change--negative {
+  color: #c62828;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.5rem;
 }

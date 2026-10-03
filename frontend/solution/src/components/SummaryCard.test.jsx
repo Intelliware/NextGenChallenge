@@ -45,6 +45,20 @@ describe('SummaryCard', () => {
     expect(stat('Total market value')).toHaveTextContent('Not found')
   })
 
+  test('shows given summary figures instead of the selected account', () => {
+    const summary = { label: 'All accounts', totalMarketValue: 1000, dayChangeAmount: -10, dayChangePercent: -0.99 }
+    const { unmount } = renderWithContext(<SummaryCard summary={summary} showTotalReturn={false} />, {
+      portfolio: makePortfolio({ status: 'error', error: new Error('ignored') }),
+    })
+    expect(screen.getByRole('heading', { name: 'All accounts' })).toBeInTheDocument()
+    expect(stat('Day change')).toHaveTextContent('▼ -$10.00 CAD (-0.99%)')
+    expect(screen.queryByText('Total return since inception')).not.toBeInTheDocument()
+    unmount()
+
+    renderWithContext(<SummaryCard summary={summary} loading />)
+    expect(screen.getByText('Loading portfolio…')).toBeInTheDocument()
+  })
+
   test('shows loading and error states', () => {
     const { unmount } = renderWithContext(<SummaryCard />, { portfolio: makePortfolio({ status: 'loading' }) })
     expect(screen.getByText('Loading portfolio…')).toBeInTheDocument()
