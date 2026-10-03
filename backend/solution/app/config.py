@@ -1,7 +1,10 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+FIXTURES_DIR = Path(__file__).resolve().parents[2] / "fixtures"
 
 
 class Settings(BaseSettings):
@@ -15,6 +18,8 @@ class Settings(BaseSettings):
     crm_retry_backoff_seconds: float = Field(default=0.2, ge=0)
     crm_total_budget_seconds: float = Field(default=5.0, gt=0)
     log_level: str = "INFO"
+    history_file: Path = FIXTURES_DIR / "performance-history.json"
+    seed_file: Path = FIXTURES_DIR / "seed.json"
 
 
 @lru_cache

@@ -1,6 +1,6 @@
 # Portfolio Dashboard Backend (Python / FastAPI)
 
-Status: **Task 1 (Portfolio Metadata via CRM Integration)** and **Task 2 (Holdings)** are complete. Other tasks are not started yet. The code is structured for Task 9 (caching) and Task 4 (auth) to slot in; see "Extending" below.
+Status: **Task 1 (Portfolio Metadata via CRM Integration)**, **Task 2 (Holdings)** and **Task 3 (Performance History)** are complete. Other tasks are not started yet. The code is structured for Task 9 (caching) and Task 4 (auth) to slot in; see "Extending" below.
 
 Working on this as a team? Read [TEAM-GUIDE.md](TEAM-GUIDE.md) first. It covers the pinned stack, who owns which files, coding conventions, and the decisions we need to agree on.
 
@@ -9,10 +9,13 @@ Working on this as a team? Read [TEAM-GUIDE.md](TEAM-GUIDE.md) first. It covers 
 Requires Python 3.11+ and Node 24+ (for the supplied mock CRM). From the repo root:
 
 ```sh
-# 1. Start the supplied mock CRM (port 4002)
+# 1. Generate the sample performance history (dates end today; see Task 3 below)
+node backend/fixtures/generate-history.mjs
+
+# 2. Start the supplied mock CRM (port 4002)
 node backend/mock-crm.mjs
 
-# 2. In another terminal, set up and start the backend (port 3000)
+# 3. In another terminal, set up and start the backend (port 3000)
 cd backend/solution
 python3 -m venv .venv
 source .venv/bin/activate
@@ -20,7 +23,7 @@ pip install -r requirements-dev.txt
 uvicorn app.main:app --port 3000 --reload
 ```
 
-Try it: <http://localhost:3000/portfolios/P-9001>. Interactive API docs: <http://localhost:3000/docs>.
+Try it: <http://localhost:3000/portfolios/P-9001> and <http://localhost:3000/portfolios/P-9001/performance-history?range=1M>. Interactive API docs: <http://localhost:3000/docs>.
 
 Configuration comes from environment variables (or a `.env` file; see [.env.example](.env.example)):
 
@@ -32,6 +35,8 @@ Configuration comes from environment variables (or a `.env` file; see [.env.exam
 | `CRM_RETRY_BACKOFF_SECONDS` | `0.2` | Pause before a retry |
 | `CRM_TOTAL_BUDGET_SECONDS` | `5` | Hard cap on total time spent on the CRM per request |
 | `LOG_LEVEL` | `INFO` | Log verbosity |
+| `HISTORY_FILE` | `backend/fixtures/performance-history.json` | Generated daily history (Task 3) |
+| `SEED_FILE` | `backend/fixtures/seed.json` | Seed data; Task 3 reads its portfolio list |
 
 ## Run the tests
 
@@ -51,6 +56,7 @@ pytest -m integration         # only the live tests (start node backend/mock-crm
 | `tests/test_end_to_end_fake_crm.py` | Full stack (route, real HTTP client, mapper) against the scenario fake CRM for every fixture and forced status. |
 | `tests/test_integration_mock_crm.py` | Live against the supplied mock: all modes, call counts, and 10 requests in `auto` mode without a crash or hang. |
 | `tests/test_holdings.py` | Holdings calculations without HTTP (P-9001 values, zero quantity, zero previous close, empty portfolio) and the endpoint (all 12 camelCase fields, JSON `null`, `[]`, 404). |
+| `tests/test_history.py` | Task 3, with today pinned and made-up data (no generated file needed): every range's window, month-end and leap-year clamping, gaps, future dates, short history, range parsing, file loading, and the HTTP layer (400/404/503, empty portfolio, OpenAPI). |
 
 ## `GET /portfolios/{id}`
 
@@ -181,13 +187,49 @@ curl -X POST localhost:4003/__control -H 'Content-Type: application/json' -d '{"
 
 It also supports `GET /__scenarios` and `GET /__stats`. [requests.http](requests.http) contains ready-made requests for both CRMs.
 
+## `GET /portfolios/{id}/performance-history` (Task 3)
+
+Daily total market value for the performance chart, oldest first. `range` is optional: `1D`, `1M`, `YTD`, `1Y`, or `All` (the default).
+
+```sh
+curl 'localhost:3000/portfolios/P-9001/performance-history?range=1D'
+```
+
+```json
+[
+  { "date": "2026-10-02", "marketValue": 48917.8 },
+  { "date": "2026-10-03", "marketValue": 48930.0 }
+]
+```
+
+The data comes from `backend/fixtures/performance-history.json`, which `node backend/fixtures/generate-history.mjs` creates with dates ending today (UTC). The file is git-ignored. `P-9001` has 401 days, `P-9002` and `P-SINGLE` have 60, and `P-EMPTY` has none.
+
+| Situation | Status | `error` |
+| --- | --- | --- |
+| Id isn't 1-64 chars of letters, digits, `-`, `_` | 400 | `invalid_portfolio_id` |
+| `range` isn't exactly one of the five values (`details.allowed` lists them) | 400 | `invalid_range` |
+| Id isn't a portfolio in `seed.json` | 404 | `portfolio_not_found` |
+| History file is missing or unreadable (the log names the command that generates it) | 503 | `history_unavailable` |
+
+**Decisions:**
+
+- **Every range ends today** (the current UTC date, the same "today" the generator uses) and includes both ends. `1D` starts yesterday, so it returns 2 points: the data is daily, and one point can't draw a line. `1M` and `1Y` start on the same day one month or one year back, clamped to the end of shorter months (Mar 31 becomes Feb 28, or Feb 29 in a leap year; Feb 29 becomes Feb 28). `YTD` starts on January 1 of the current year. `All` has no start date.
+- **The window is chosen by date, not by counting points**, so gaps in the data don't stretch it further back. One consequence: if the data skips days (weekends, for example), `1D` can return a single point.
+- **Short history is returned as-is**, never padded: `P-9002` with `range=1Y` returns its 60 days.
+- **`range` must match exactly**, including case. `all`, an empty `range=`, or `1W` returns 400 rather than falling back to `All`.
+- **Checks run in order:** id format, then `range`, then whether the portfolio exists. A bad `range` on an unknown id is therefore a 400, not a 404.
+- **404 versus empty:** the portfolio list in `seed.json` decides whether an id exists. A portfolio with no history (`P-EMPTY`) returns 200 with `[]`.
+- **Snapshots dated after today are dropped**, and values are passed through unrounded.
+- **A missing history file doesn't stop the server**, so `/portfolios/{id}` keeps working and only this endpoint returns 503. Once loaded, the file is cached for the life of the process, so **restart the backend after regenerating it** (for example the next day, so `1D` and `YTD` line up with the new date).
+- **Until the shared seed loader (`app/data/seed.py`, see [TEAM-GUIDE.md](TEAM-GUIDE.md)) exists**, `app/services/history_service.py` reads both JSON files itself. Switching over only touches `get_history_service` in `app/dependencies.py`.
+
 ## Project layout
 
 ```text
 app/
   main.py                    create_app(): lifespan (shared HTTP client), request-id middleware, routers
   config.py                  Settings from env vars
-  models.py                  PortfolioMetadata, ErrorResponse (camelCase on the wire)
+  models.py                  PortfolioMetadata, Holding, PerformanceSnapshot, ErrorResponse (camelCase on the wire)
   errors.py                  Exception -> HTTP status + error body
   request_context.py         Request ids and logging
   dependencies.py            FastAPI dependency wiring
@@ -195,7 +237,8 @@ app/
   crm/mapper.py              Pure payload -> PortfolioMetadata mapping
   crm/errors.py              CrmNotFound / CrmTimeout / CrmUnavailable / CrmBadResponse
   services/portfolio_service.py   Fetch, then map (Task 9's cache goes here)
-  routes/portfolios.py, routes/health.py
+  services/history_service.py     Task 3: range window, filtering, history and seed file loading
+  routes/portfolios.py, routes/history.py, routes/health.py
   data/seed.py               Loads backend/fixtures/seed.json once (in memory)
   calculations/holdings.py   Pure holding calculations: market value, weight, gain/loss
   services/holdings_service.py   404 check, then calculate
@@ -207,11 +250,12 @@ tests/                       pytest suites and fixtures/crm/
 ## Extending
 
 - **Task 9 (cache):** wrap `PortfolioService.get_metadata`. Cache the mapped `PortfolioMetadata` per id. On `CrmTimeout` or `CrmUnavailable` with an expired entry, serve it with `stale: true`. `CrmNotFound` and `CrmBadResponse` should probably not fall back to stale data; decide and document.
-- **Task 4 (auth):** add a dependency or middleware before the routers. `/health` should probably stay public.
-- **Task 7 (currency):** convert in the route or service after mapping; `currency` is already in the response.
+- **Task 4 (auth):** add a dependency or middleware before the routers. `/health` should probably stay public. The API tests in `tests/test_history.py` will then need the token header too.
+- **Task 7 (currency):** convert in the route or service after mapping; `currency` is already in the response. For history, convert in `_to_response` in `app/services/history_service.py`, which builds every snapshot.
 
 ## Unfinished / known limitations
 
-- Only Tasks 1 and 2 are implemented.
-- There's no authentication yet, so the endpoint is open (Task 4).
+- Only Tasks 1, 2 and 3 are implemented.
+- There's no authentication yet, so the endpoints are open (Task 4).
 - There's no caching yet (Task 9): every request calls the CRM.
+- Performance history is read once per process, so a regenerated file needs a restart. History values aren't converted to other currencies yet (Task 7).

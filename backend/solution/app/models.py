@@ -64,3 +64,11 @@ class Holding(ApiModel):
     unrealized_gain_loss: float
     day_change_amount: float
     day_change_percent: float | None = Field(description="Decimal; null when the previous close is 0")
+
+
+# --- Task 3 ---
+class PerformanceSnapshot(ApiModel):
+    model_config = ConfigDict(json_schema_extra={"example": {"date": "2026-10-03", "marketValue": 48930.0}})
+
+    date: str = Field(description="Snapshot date, YYYY-MM-DD")
+    market_value: float = Field(description="Total portfolio market value on that date")

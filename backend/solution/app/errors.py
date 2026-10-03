@@ -33,9 +33,19 @@ class InvalidPortfolioId(ApiError):
     error = "invalid_portfolio_id"
 
 
+class InvalidRange(ApiError):
+    status_code = 400
+    error = "invalid_range"
+
+
 class PortfolioNotFound(ApiError):
     status_code = 404
     error = "portfolio_not_found"
+
+
+class HistoryUnavailable(ApiError):
+    status_code = 503
+    error = "history_unavailable"
 
 
 def _request_id(request: Request) -> str:

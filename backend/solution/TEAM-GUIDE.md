@@ -157,6 +157,11 @@ The requirements leave these to us. Confirm each one together, change the row if
 | --- | --- | --- | --- |
 | `previousClosePrice` is 0, so `dayChangePercent` divides by zero | Return `null` | 2 | |
 | Seed data location | Read `backend/fixtures/seed.json` at startup into memory; tests use the same file | all | |
+| Where data file paths live | `SEED_FILE` and `HISTORY_FILE` settings in `app/config.py`; the seed loader reuses `seed_file` | all | |
+| What each history `range` covers | Ends today (UTC), both ends included. `1D`: yesterday and today (2 points). `1M`/`1Y`: same day last month/year, clamped to month end. `YTD`: from Jan 1 | 3 | |
+| Is `range` case-sensitive? | Yes, exact match; `all`, empty, or unknown values return 400 `invalid_range` | 3 | |
+| History: 404 or `[]`? | `seed.json`'s portfolio list decides; a listed portfolio with no history (`P-EMPTY`) returns `[]` | 3 | |
+| History file not generated | Server still starts; the history endpoint returns 503 `history_unavailable` and logs the generator command | 3 | |
 | Mock auth token | `Bearer superday-demo-token` (matches `backend/requests.http`) | 4 | |
 | Is `/health` behind auth? | No, health checks stay public | 4 | |
 | Where currency metadata goes on array responses | Add `currency` and `exchangeRate` to each item, keeping the response a plain array as the spec shows | 7 | |
