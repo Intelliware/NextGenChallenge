@@ -11,6 +11,7 @@ import {
   withSign,
 } from '../portfolio/format'
 
+// One labelled figure in the summary; `tone` colours it and adds a ▲/▼ for positive/negative
 function Stat({ label, value, tone = 'neutral' }) {
   return (
     <div className={`summary-card__stat summary-card__stat--${tone}`}>
@@ -23,15 +24,25 @@ function Stat({ label, value, tone = 'neutral' }) {
   )
 }
 
+// At-a-glance health of the selected account: market value, day change ($ and %) and total return.
+// Reads the selected portfolio from PortfolioContext; money follows the CAD/USD toggle.
 export default function SummaryCard() {
-  const { status, data } = useContext(PortfolioContext) ?? {}
+  const { status, data, error } = useContext(PortfolioContext) ?? {}
   const { formatMoney, formatSignedMoney } = useCurrency()
 
-  if (status === 'loading' && !data) {
+  if (status === 'error') {
+    return (
+      <section className="summary-card" role="alert">
+        Could not load portfolio: {error?.message ?? 'unknown error'}
+      </section>
+    )
+  }
+
+  if (!data) {
     return <section className="summary-card">Loading portfolio…</section>
   }
 
-  const portfolio = data?.portfolio ?? {}
+  const portfolio = data.portfolio ?? {}
   // Money fields are CAD from the API; useCurrency converts them to the selected currency
   const { totalMarketValue, dayChangeAmount, dayChangePercent, totalReturnSinceInception } = portfolio
 

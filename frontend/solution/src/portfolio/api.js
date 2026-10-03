@@ -1,46 +1,48 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000'
 
-// Forward ?scenario= from the app URL so mock test datasets can be toggled from the browser
-function withScenario(path) {
-  const scenario = new URLSearchParams(window.location.search).get('scenario')
-  return scenario ? `${path}?scenario=${encodeURIComponent(scenario)}` : path
+// Mock API test switches that can be set on the app URL (e.g. /?scenario=large&delayMs=2000&fail=true)
+const MOCK_PARAMS = ['scenario', 'delayMs', 'fail']
+
+// Copies the mock test switches from the app URL onto an API path so every request uses the same dataset
+export function withScenario(path, search = window.location.search) {
+  const appParams = new URLSearchParams(search)
+  const apiParams = new URLSearchParams()
+  for (const name of MOCK_PARAMS) {
+    const value = appParams.get(name)
+    if (value !== null) apiParams.set(name, value)
+  }
+  const query = apiParams.toString()
+  return query ? `${path}?${query}` : path
 }
 
-export async function fetchPortfolio(accountId, { signal } = {}) {
-  const res = await fetch(
-    `${API_BASE_URL}${withScenario(`/portfolios/${encodeURIComponent(accountId)}`)}`,
-    { signal },
+// GETs a mock API path and returns its JSON. On an HTTP error it throws with the API's
+// `message` when there is one, else `fallbackMessage`. Pass `signal` to allow aborting.
+async function getJson(path, fallbackMessage, signal) {
+  const res = await fetch(`${API_BASE_URL}${withScenario(path)}`, { signal })
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.message ?? `${fallbackMessage} (HTTP ${res.status})`)
+  }
+
+  return res.json()
+}
+
+// { asOf, portfolio, holdings, allocation, performanceHistory } for one account
+export function fetchPortfolio(accountId, { signal } = {}) {
+  return getJson(
+    `/portfolios/${encodeURIComponent(accountId)}`,
+    `Failed to load portfolio ${accountId}`,
+    signal,
   )
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null)
-    throw new Error(body?.message ?? `Failed to load portfolio ${accountId} (HTTP ${res.status})`)
-  }
-
-  // { asOf, portfolio, holdings, allocation, performanceHistory }
-  return res.json()
 }
 
-export async function fetchAccounts({ signal } = {}) {
-  const res = await fetch(`${API_BASE_URL}${withScenario('/accounts')}`, { signal })
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null)
-    throw new Error(body?.message ?? `Failed to load accounts (HTTP ${res.status})`)
-  }
-
-  // [{ accountId, label, totalMarketValue }]
-  return res.json()
+// [{ accountId, label, totalMarketValue }]
+export function fetchAccounts({ signal } = {}) {
+  return getJson('/accounts', 'Failed to load accounts', signal)
 }
 
-export async function fetchExchangeRate({ signal } = {}) {
-  const res = await fetch(`${API_BASE_URL}${withScenario('/exchange-rate')}`, { signal })
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null)
-    throw new Error(body?.message ?? `Failed to load exchange rate (HTTP ${res.status})`)
-  }
-
-  // { CADtoUSD: 0.73 }
-  return res.json()
+// { CADtoUSD: 0.73 }
+export function fetchExchangeRate({ signal } = {}) {
+  return getJson('/exchange-rate', 'Failed to load exchange rate', signal)
 }

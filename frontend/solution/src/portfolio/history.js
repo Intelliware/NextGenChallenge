@@ -4,25 +4,32 @@ export const RANGES = ['1D', '1M', 'YTD', '1Y', 'ALL']
 
 const DAY_MS = 86400000
 
+// 'YYYY-MM-DD' <-> UTC milliseconds
 const toTime = (date) => Date.parse(`${date}T00:00:00Z`)
 const toDate = (time) => new Date(time).toISOString().slice(0, 10)
 
-// First date (inclusive) of the window; null means no lower bound
-function rangeStart(range, now) {
+// Same day `months` earlier (UTC), clamped to the month's last day so Mar 31 - 1 month is Feb 28/29,
+// not Mar 3 as Date#setUTCMonth would overflow to
+function monthsBefore(now, months) {
+  const year = now.getUTCFullYear()
+  const month = now.getUTCMonth() - months
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
+  return Date.UTC(year, month, Math.min(now.getUTCDate(), lastDay))
+}
+
+// First date (inclusive) of the window, as 'YYYY-MM-DD'; null means no lower bound
+export function rangeStart(range, now) {
   const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-  const d = new Date(today)
   switch (range) {
     case '1D':
       return toDate(today - DAY_MS)
     case '1M':
-      d.setUTCMonth(d.getUTCMonth() - 1)
-      return toDate(d)
+      return toDate(monthsBefore(now, 1))
     case 'YTD':
       // Calendar year, not the dataset's start
       return toDate(Date.UTC(now.getUTCFullYear(), 0, 1))
     case '1Y':
-      d.setUTCFullYear(d.getUTCFullYear() - 1)
-      return toDate(d)
+      return toDate(monthsBefore(now, 12))
     default:
       return null
   }

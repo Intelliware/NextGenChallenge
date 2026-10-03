@@ -4,14 +4,24 @@ import HoldingRow from './HoldingRow'
 
 const COLUMNS = ['Holding', 'Asset class', 'Quantity', 'Price', 'Market value', 'Weight', 'Day change', 'Unrealized gain/loss']
 
+// Every position in the selected account, one HoldingRow each. Reads PortfolioContext and shows
+// loading, error and empty states; the table scrolls inside its card on narrow screens.
 export default function HoldingsTable() {
-  const { status, data } = useContext(PortfolioContext) ?? {}
+  const { status, data, error } = useContext(PortfolioContext) ?? {}
 
-  if (status === 'loading' && !data) {
+  if (status === 'error') {
+    return (
+      <section className="holdings" role="alert">
+        Could not load holdings: {error?.message ?? 'unknown error'}
+      </section>
+    )
+  }
+
+  if (!data) {
     return <section className="holdings">Loading holdings…</section>
   }
 
-  const holdings = data?.holdings ?? []
+  const holdings = data.holdings ?? []
 
   return (
     <section className="holdings" aria-label="Holdings">
