@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import Money from '../currency/Money'
 
+// One account on the Accounts page: a header that expands to show its ID and market value,
+// and a button that makes it the selected account (`onSelect`). `isSelected` highlights it.
 export default function AccountCard({ account, isSelected, onSelect }) {
   const [isOpen, setIsOpen] = useState(false)
 

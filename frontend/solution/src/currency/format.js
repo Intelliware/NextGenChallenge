@@ -5,6 +5,7 @@ import { NOT_FOUND } from '../portfolio/format.js'
 
 const formatters = new Map()
 
+// Intl formatters are costly to build, so one is cached per currency + sign style
 function getFormatter(currency, signDisplay) {
   const key = `${currency}:${signDisplay}`
   if (!formatters.has(key)) {
@@ -22,6 +23,7 @@ function getFormatter(currency, signDisplay) {
   return formatters.get(key)
 }
 
+// Formats an amount already in `currency` and appends the currency code; missing values show NOT_FOUND
 function format(amount, currency, signDisplay) {
   if (typeof amount !== 'number' || !Number.isFinite(amount)) return NOT_FOUND
   return `${getFormatter(currency, signDisplay).format(amount)} ${currency}`

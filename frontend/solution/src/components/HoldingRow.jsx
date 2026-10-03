@@ -8,6 +8,7 @@ import {
   withSign,
 } from '../portfolio/format'
 
+// Numeric cell coloured by the sign of `value` (raw CAD), with a ▲/▼ for gains and losses
 function TrendCell({ value, children }) {
   const tone = trend(value)
   return (
@@ -18,6 +19,8 @@ function TrendCell({ value, children }) {
   )
 }
 
+// One holdings table row. Money columns (price, market value, day change, gain/loss) go through
+// useCurrency so they follow the CAD/USD toggle; quantity and percentages are shown as-is.
 export default function HoldingRow({ holding }) {
   const { formatMoney, formatSignedMoney } = useCurrency()
   const { ticker, name, assetClass, quantity, price, marketValue, weightPercent, gainLoss } = holding

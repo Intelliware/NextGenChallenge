@@ -5,6 +5,8 @@ import { CurrencyContext } from './CurrencyContext'
 import { formatMoney, formatSignedMoney } from './format'
 import { RATE_TTL_MS, nextRateState } from './rateCache'
 
+// Owns the display currency and the CAD->USD rate for the whole app. Components call useCurrency()
+// to convert and format raw CAD amounts; switching currency re-renders them without refetching.
 export default function CurrencyProvider({ children }) {
   // Not persisted: every visit starts in CAD
   const [selectedCurrency, setSelectedCurrency] = useState(BASE_CURRENCY)

@@ -6,6 +6,8 @@ import SummaryCard from '../components/SummaryCard'
 import { PortfolioContext } from '../portfolio/PortfolioContext'
 import usePortfolios from '../portfolio/usePortfolios'
 
+// Dashboard for the selected account: summary card, value chart and holdings table.
+// Redirects to /accounts until an account is selected.
 export default function Home() {
   const { accountId } = useContext(PortfolioContext)
   // The value chart covers every account, not just the selected one

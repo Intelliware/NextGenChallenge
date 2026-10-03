@@ -4,6 +4,8 @@ import { fetchAccounts } from '../portfolio/api'
 import AccountCard from '../components/AccountCard'
 import { PortfolioContext } from '../portfolio/PortfolioContext'
 
+// Lists every account (GET /accounts) as AccountCards and lets the user pick one for the
+// dashboard. Logs the API response, and shows loading, error and empty states.
 export default function Accounts() {
   const [accounts, setAccounts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
