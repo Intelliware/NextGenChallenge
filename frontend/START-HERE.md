@@ -4,7 +4,7 @@ Build the dashboard described in [REQUIREMENTS.md](REQUIREMENTS.md). Choose any 
 
 ## Get running
 
-1. [Install Node.js and open a terminal in `NewGrads`](../support/SETUP.md).
+1. [Install Node.js and open a terminal in `NextGenChallenge`](../support/SETUP.md).
 2. Start the supplied backend:
 
    ```sh

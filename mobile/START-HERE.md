@@ -9,7 +9,7 @@ Build the app described in [REQUIREMENTS.md](REQUIREMENTS.md). Choose native iOS
    - **Android:** install [Android Studio](https://developer.android.com/studio/install). Complete its setup wizard, create a project, and create an emulator in Device Manager.
    - **React Native/Expo:** follow [Expo's setup guide](https://docs.expo.dev/get-started/set-up-your-environment/) for your device. Use a development build when your chosen native features require it.
 2. Save your project inside `mobile/solution/`. Launch the generated app on a simulator, emulator, or device before starting the tasks.
-3. [Install Node.js and open a terminal in `NewGrads`](../support/SETUP.md), then start the supplied API:
+3. [Install Node.js and open a terminal in `NextGenChallenge`](../support/SETUP.md), then start the supplied API:
 
    ```sh
    node mobile/mock-server.mjs

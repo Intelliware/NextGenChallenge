@@ -4,7 +4,7 @@ Build the backend described in [REQUIREMENTS.md](REQUIREMENTS.md). Choose any la
 
 ## Get running
 
-1. [Install Node.js and open a terminal in `NewGrads`](../support/SETUP.md).
+1. [Install Node.js and open a terminal in `NextGenChallenge`](../support/SETUP.md).
 2. Start the mock CRM (the external service your backend will call):
 
    ```sh
@@ -21,7 +21,7 @@ Start with Task 1: implement your own `GET /portfolios/:id` endpoint. Inside it,
 
 - **Mock CRM:** portfolio metadata, multiple accounts, failures, timeouts, and call counts for testing your cache.
 - **[fixtures/seed.json](fixtures/seed.json):** clients, portfolios, raw holdings, holding details, exchange rate, and transactions. Using this fixture is optional — you may create your own data instead — but using the supplied one is recommended. Copy or import them into your chosen store. Design your own schema.
-- **Sample history:** run `node backend/fixtures/generate-history.mjs` from `NewGrads`. This creates `backend/fixtures/performance-history.json`, with dates ending today. Regenerate when needed so YTD tests use the current year. The generated file is ignored by Git.
+- **Sample history:** run `node backend/fixtures/generate-history.mjs` from `NextGenChallenge`. This creates `backend/fixtures/performance-history.json`, with dates ending today. Regenerate when needed so YTD tests use the current year. The generated file is ignored by Git.
 - **[requests.http](requests.http):** example requests to send to your own service using an HTTP client. A browser also works for the mock; use curl or an HTTP client to send your service's auth header.
 
 You implement the endpoints, calculations, authentication, caching, persistence, and ledger replay. A frontend is not needed to test this track.
