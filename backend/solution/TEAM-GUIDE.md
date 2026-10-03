@@ -65,7 +65,7 @@ Task 1 is done. The remaining work is split so that each person mostly touches t
 **Handoffs between people:**
 
 1. **Person B to Person A:** Person B builds the seed data loader (`app/data/seed.py`) first and pushes it early, because Task 3 (Person A) needs the history data. Task 7 (Person A) needs Person B's holdings to be convertible, so build each holding response in **one function** so currency conversion can be applied in a single place.
-2. **Person A to Person B:** Person A adds auth (Task 4) early. After it merges, every new route is protected automatically (see "Auth" below), and Person B's tests send the token header.
+2. **Person A to Person B:** Person A adds auth (Task 4) early. After it merges, every new route is protected automatically (see section 7), and Person B's tests send the token header.
 
 ## 5. How to add an endpoint (follow the Task 1 pattern)
 
@@ -134,7 +134,8 @@ Then add `app.include_router(holdings.router)` in `app/main.py`.
 
 - Each task gets its own test file (see section 4) covering every edge case and Definition of Done item from [REQUIREMENTS.md](../REQUIREMENTS.md).
 - Use the seed fixtures named in [START-HERE.md](../START-HERE.md): `P-9001` (mixed, plus a zero-quantity position), `P-9002` (zero previous close, short history), `P-EMPTY`, `P-SINGLE`, clients `abc123` and `single-client`.
-- API tests use `TestClient(create_app(make_settings()))`; see `tests/test_portfolios_api.py`. Override dependencies instead of patching globals.
+- API tests use `TestClient(create_app(make_settings()), headers=AUTH_HEADERS)`; see `tests/test_portfolios_api.py`. Override dependencies instead of patching globals.
+- **Auth:** every route is protected automatically by the middleware in `app/auth.py`; there's nothing to add to a new router. Send `AUTH_HEADERS` from `tests/conftest.py` in your API tests, or they'll get 401s. `tests/test_auth.py` sweeps every operation in the OpenAPI spec, so it fails if a route ever ends up open. To make a path public, add it to `PUBLIC_PATHS` and to the expected list in `tests/test_auth.py`.
 - Regenerate history before testing YTD: `node backend/fixtures/generate-history.mjs` (repo root).
 
 ## 8. Git workflow
@@ -164,6 +165,10 @@ The requirements leave these to us. Confirm each one together, change the row if
 | History file not generated | Server still starts; the history endpoint returns 503 `history_unavailable` and logs the generator command | 3 | |
 | Mock auth token | `Bearer superday-demo-token` (matches `backend/requests.http`) | 4 | |
 | Is `/health` behind auth? | No, health checks stay public | 4 | |
+| How auth is enforced | Middleware in front of every route, with an exact-match public list (`/health`, `/health/ready`, `/docs`, `/docs/oauth2-redirect`, `/redoc`, `/openapi.json`), so new routes are protected without opting in | 4 | |
+| Unknown path without a token | 401, not 404, so the API doesn't reveal which routes exist | 4 | |
+| Header parsing | `Bearer` is case-insensitive and extra spaces are allowed; the token must match exactly (constant-time, as bytes) | 4 | |
+| Token configuration | `API_TOKEN` setting, default `superday-demo-token`, stored as a `SecretStr` and never logged | 4 | |
 | Where currency metadata goes on array responses | Add `currency` and `exchangeRate` to each item, keeping the response a plain array as the spec shows | 7 | |
 | USD/CAD rate source | `exchangeRate` from `seed.json`, held in a small internal module | 7 | |
 | Cache TTL | 30 seconds, configurable with `CACHE_TTL_SECONDS` | 9 | |

@@ -8,7 +8,7 @@ from app.dependencies import get_crm_client, get_history_service
 from app.main import create_app
 from app.openapi import EXAMPLE_REQUEST_ID, OPENAPI_TAGS
 from app.services.history_service import HistoryService
-from tests.conftest import load_fixture, make_settings
+from tests.conftest import AUTH_HEADERS, load_fixture, make_settings
 from tests.test_portfolios_api import FakeCrm
 
 PORTFOLIO = "/portfolios/{portfolio_id}"
@@ -25,7 +25,7 @@ def client(fake_crm):
     app = create_app(make_settings())
     app.dependency_overrides[get_crm_client] = lambda: fake_crm
     app.dependency_overrides[get_history_service] = lambda: HistoryService({}, {"P-9001"})
-    with TestClient(app, raise_server_exceptions=False) as test_client:
+    with TestClient(app, raise_server_exceptions=False, headers=AUTH_HEADERS) as test_client:
         yield test_client
 
 
@@ -91,5 +91,5 @@ def test_history_error_examples_are_real_responses(client, url):
 
 def test_history_unavailable_example_is_the_real_response(tmp_path):
     app = create_app(make_settings(history_file=tmp_path / "missing.json"))
-    with TestClient(app, raise_server_exceptions=False) as test_client:
+    with TestClient(app, raise_server_exceptions=False, headers=AUTH_HEADERS) as test_client:
         assert_documented(test_client, HISTORY, test_client.get("/portfolios/P-9001/performance-history"))

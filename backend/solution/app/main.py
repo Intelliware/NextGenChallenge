@@ -3,10 +3,18 @@ from contextlib import asynccontextmanager
 import httpx
 from fastapi import FastAPI, Request
 
+from app.auth import require_bearer_token
 from app.config import Settings, get_settings
 from app.crm.client import CrmClient
 from app.errors import register_error_handlers
-from app.openapi import OPENAPI_TAGS, SWAGGER_UI_PARAMETERS, api_description, hide_validation_error_docs, operation_id
+from app.openapi import (
+    OPENAPI_TAGS,
+    SWAGGER_UI_PARAMETERS,
+    api_description,
+    document_bearer_auth,
+    hide_validation_error_docs,
+    operation_id,
+)
 from app.request_context import REQUEST_ID_HEADER, configure_logging, request_id_var, resolve_request_id
 from app.routes import health, history, portfolios
 
@@ -38,6 +46,10 @@ def create_app(settings: Settings | None = None, *, crm_transport: httpx.AsyncBa
     )
     app.state.settings = settings
 
+    # Starlette runs the last-registered middleware first, so registering auth before the request-id
+    # middleware makes auth run inside it, and rejected requests are logged with their request id.
+    app.middleware("http")(require_bearer_token)
+
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):
         request_id = resolve_request_id(request.headers.get(REQUEST_ID_HEADER))
@@ -52,6 +64,7 @@ def create_app(settings: Settings | None = None, *, crm_transport: httpx.AsyncBa
     app.include_router(portfolios.router)
     app.include_router(history.router)
     hide_validation_error_docs(app)
+    document_bearer_auth(app)
     return app
 
 

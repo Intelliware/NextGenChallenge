@@ -8,6 +8,9 @@ from app.config import Settings
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "crm"
 
+TEST_TOKEN = "superday-demo-token"
+AUTH_HEADERS = {"Authorization": f"Bearer {TEST_TOKEN}"}
+
 
 def load_fixture(name: str) -> Any:
     return json.loads((FIXTURE_DIR / f"{name}.json").read_text())
@@ -25,6 +28,7 @@ def make_settings(**overrides: Any) -> Settings:
         "crm_retry_backoff_seconds": 0.0,
         "crm_total_budget_seconds": 5.0,
         "log_level": "WARNING",
+        "api_token": TEST_TOKEN,
     }
     values.update(overrides)
     return Settings(_env_file=None, **values)

@@ -1,6 +1,6 @@
 # Portfolio Dashboard Backend (Python / FastAPI)
 
-Status: **Task 1 (Portfolio Metadata via CRM Integration)** and **Task 3 (Performance History)** are complete. Other tasks are not started yet. The code is structured for Task 9 (caching) and Task 4 (auth) to slot in; see "Extending" below.
+Status: **Task 1 (Portfolio Metadata via CRM Integration)**, **Task 3 (Performance History)** and **Task 4 (Auth Middleware)** are complete. Other tasks are not started yet. The code is structured for Task 9 (caching) to slot in; see "Extending" below.
 
 Working on this as a team? Read [TEAM-GUIDE.md](TEAM-GUIDE.md) first. It covers the pinned stack, who owns which files, coding conventions, and the decisions we need to agree on.
 
@@ -23,7 +23,14 @@ pip install -r requirements-dev.txt
 uvicorn app.main:app --port 3000 --reload
 ```
 
-Try it: <http://localhost:3000/portfolios/P-9001> and <http://localhost:3000/portfolios/P-9001/performance-history?range=1M>. Interactive API docs: <http://localhost:3000/docs>.
+Every endpoint except the health checks needs the mock token (see Task 4 below). Try it:
+
+```sh
+curl -H 'Authorization: Bearer superday-demo-token' localhost:3000/portfolios/P-9001
+curl -H 'Authorization: Bearer superday-demo-token' 'localhost:3000/portfolios/P-9001/performance-history?range=1M'
+```
+
+Or open the interactive docs at <http://localhost:3000/docs>, press **Authorize**, and enter `superday-demo-token`.
 
 Configuration comes from environment variables (or a `.env` file; see [.env.example](.env.example)):
 
@@ -37,6 +44,7 @@ Configuration comes from environment variables (or a `.env` file; see [.env.exam
 | `LOG_LEVEL` | `INFO` | Log verbosity |
 | `HISTORY_FILE` | `backend/fixtures/performance-history.json` | Generated daily history (Task 3) |
 | `SEED_FILE` | `backend/fixtures/seed.json` | Seed data; Task 3 reads its portfolio list |
+| `API_TOKEN` | `superday-demo-token` | The one valid bearer token (Task 4) |
 
 ## Run the tests
 
@@ -56,6 +64,8 @@ pytest -m integration         # only the live tests (start node backend/mock-crm
 | `tests/test_end_to_end_fake_crm.py` | Full stack (route, real HTTP client, mapper) against the scenario fake CRM for every fixture and forced status. |
 | `tests/test_integration_mock_crm.py` | Live against the supplied mock: all modes, call counts, and 10 requests in `auto` mode without a crash or hang. |
 | `tests/test_history.py` | Task 3, with today pinned and made-up data (no generated file needed): every range's window, month-end and leap-year clamping, gaps, future dates, short history, range parsing, file loading, and the HTTP layer (400/404/503, empty portfolio, OpenAPI). |
+| `tests/test_api_docs.py` | The interactive docs: Swagger UI settings, no misleading 422s, and error examples that match real responses. |
+| `tests/test_auth.py` | Task 4: the header check (missing, malformed, wrong token, lowercase scheme, non-ASCII), rejection before any route logic runs, a sweep proving every non-public operation needs the token, exact public paths, the token coming from settings and never being logged, and the docs' Authorize button and 401 examples. |
 
 ## `GET /portfolios/{id}`
 
@@ -140,7 +150,7 @@ python scripts/fake_crm.py --port 4003
 CRM_BASE_URL=http://localhost:4003 uvicorn app.main:app --port 3000
 
 curl -X POST localhost:4003/__control -H 'Content-Type: application/json' -d '{"scenario":"invalid_number_types"}'
-curl localhost:3000/portfolios/P-9001          # every fixture targets P-9001
+curl -H 'Authorization: Bearer superday-demo-token' localhost:3000/portfolios/P-9001   # every fixture targets P-9001
 curl -X POST localhost:4003/__control -H 'Content-Type: application/json' -d '{"slow_ms":4000}'   # -> 504
 curl -X POST localhost:4003/__control -H 'Content-Type: application/json' -d '{"status":503}'     # -> 503 after retry
 ```
@@ -152,7 +162,7 @@ It also supports `GET /__scenarios` and `GET /__stats`. [requests.http](requests
 Daily total market value for the performance chart, oldest first. `range` is optional: `1D`, `1M`, `YTD`, `1Y`, or `All` (the default).
 
 ```sh
-curl 'localhost:3000/portfolios/P-9001/performance-history?range=1D'
+curl -H 'Authorization: Bearer superday-demo-token' 'localhost:3000/portfolios/P-9001/performance-history?range=1D'
 ```
 
 ```json
@@ -183,11 +193,47 @@ The data comes from `backend/fixtures/performance-history.json`, which `node bac
 - **A missing history file doesn't stop the server**, so `/portfolios/{id}` keeps working and only this endpoint returns 503. Once loaded, the file is cached for the life of the process, so **restart the backend after regenerating it** (for example the next day, so `1D` and `YTD` line up with the new date).
 - **Until the shared seed loader (`app/data/seed.py`, see [TEAM-GUIDE.md](TEAM-GUIDE.md)) exists**, `app/services/history_service.py` reads both JSON files itself. Switching over only touches `get_history_service` in `app/dependencies.py`.
 
+## Authentication (Task 4)
+
+Every endpoint except the health checks and the API docs needs a bearer token. For this exercise there's one hardcoded mock token, `superday-demo-token`; set `API_TOKEN` to change it.
+
+```sh
+curl -H 'Authorization: Bearer superday-demo-token' localhost:3000/portfolios/P-9001
+```
+
+A request without a valid header never reaches the endpoint. It gets a 401 in the shared error shape, plus a `WWW-Authenticate: Bearer` header:
+
+```json
+{ "error": "unauthorized", "message": "Missing Authorization header. Send 'Authorization: Bearer <token>'.", "requestId": "…" }
+```
+
+| `Authorization` header | Result |
+| --- | --- |
+| Missing or blank | 401: "Missing Authorization header…" |
+| `superday-demo-token` (no `Bearer `), `Basic …`, or `Bearer` with no token | 401: "The Authorization header must look like 'Bearer \<token\>'." |
+| `Bearer wrong-token` | 401: "The token is not valid." |
+| `Bearer superday-demo-token` (any capitalization of `Bearer`) | Passes through to the endpoint |
+
+**Decisions:**
+
+- **Middleware, not a per-route check.** `app/auth.py` runs before routing, so every route is protected, including ones added later, unless its path is on a short public list. Forgetting to list a route fails closed (401), not open. `tests/test_auth.py` sweeps every operation in the OpenAPI spec to prove it.
+- **Public paths:** `/health` and `/health/ready`, so monitoring doesn't need a secret, plus `/docs`, `/docs/oauth2-redirect`, `/redoc` and `/openapi.json`, so the docs load. They're matched exactly, never by prefix, so `/health/anything` still needs a token.
+- **Rejected before any route logic runs:** the tests show the CRM is never called for a rejected request.
+- **Unknown paths get a 401 without a token** (and a 404 with one), so the API doesn't reveal which routes exist.
+- **Parsing:** the scheme is case-insensitive (`bearer` works, as RFC 7235 allows), extra spaces are tolerated, and the token itself must match exactly.
+- **Comparison:** constant time (`hmac.compare_digest`) on bytes, so a token with non-ASCII characters gets a 401, not a 500.
+- **Logging:** rejections are logged with the path, reason and request id, never the token. The token is a `SecretStr`, so it doesn't show up when settings are printed either.
+- **Interactive docs:** `/docs` has an **Authorize** button, remembers the token across reloads, and documents the 401 on every protected operation.
+- **Tests** send the token with `TestClient(app, headers=AUTH_HEADERS)`, using `AUTH_HEADERS` from `tests/conftest.py`.
+- **It's a mock:** one shared token with no users, expiry or scopes. A real deployment would use a proper identity provider (for example OAuth 2.0 with signed, expiring tokens) over HTTPS.
+
 ## Project layout
 
 ```text
 app/
-  main.py                    create_app(): lifespan (shared HTTP client), request-id middleware, routers
+  main.py                    create_app(): lifespan (shared HTTP client), auth and request-id middleware, routers
+  auth.py                    Task 4: bearer-token middleware and the public paths
+  openapi.py                 What /docs shows: overview, examples, Authorize button
   config.py                  Settings from env vars
   models.py                  PortfolioMetadata, PerformanceSnapshot, ErrorResponse (camelCase on the wire)
   errors.py                  Exception -> HTTP status + error body
@@ -206,12 +252,11 @@ tests/                       pytest suites and fixtures/crm/
 ## Extending
 
 - **Task 9 (cache):** wrap `PortfolioService.get_metadata`. Cache the mapped `PortfolioMetadata` per id. On `CrmTimeout` or `CrmUnavailable` with an expired entry, serve it with `stale: true`. `CrmNotFound` and `CrmBadResponse` should probably not fall back to stale data; decide and document.
-- **Task 4 (auth):** add a dependency or middleware before the routers. `/health` should probably stay public. The API tests in `tests/test_history.py` will then need the token header too.
 - **Task 7 (currency):** convert in the route or service after mapping; `currency` is already in the response. For history, convert in `_to_response` in `app/services/history_service.py`, which builds every snapshot.
 
 ## Unfinished / known limitations
 
-- Tasks 2 and 4-10 are not implemented.
-- There's no authentication yet, so the endpoints are open (Task 4).
+- Tasks 2 and 5-10 are not implemented.
+- Auth is one shared mock token, with no users, expiry or scopes (Task 4).
 - There's no caching yet (Task 9): every request calls the CRM.
 - Performance history is read once per process, so a regenerated file needs a restart. History values aren't converted to other currencies yet (Task 7).

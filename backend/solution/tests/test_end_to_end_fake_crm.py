@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from app.main import create_app
 from scripts.fake_crm import available_scenarios, create_fake_crm
-from tests.conftest import make_settings
+from tests.conftest import AUTH_HEADERS, make_settings
 from tests.test_mapper import CLIENT_LEVEL_FIXTURES, ERROR_CASES, SUCCESS_CASES
 
 EXPECTED_STATUS = {
@@ -30,7 +30,7 @@ def fake_crm_app():
 def backend(fake_crm_app):
     transport = httpx.ASGITransport(app=fake_crm_app)
     app = create_app(make_settings(), crm_transport=transport)
-    with TestClient(app) as client:
+    with TestClient(app, headers=AUTH_HEADERS) as client:
         yield client
 
 
@@ -81,6 +81,6 @@ def test_request_id_reaches_the_crm(fake_crm_app):
         return await call_next(request)
 
     app = create_app(make_settings(), crm_transport=httpx.ASGITransport(app=fake_crm_app))
-    with TestClient(app) as backend:
+    with TestClient(app, headers=AUTH_HEADERS) as backend:
         backend.get("/portfolios/P-9001", headers={"X-Request-ID": "trace-e2e"})
     assert seen == ["trace-e2e"]
