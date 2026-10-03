@@ -1,9 +1,9 @@
 import { useContext } from 'react'
+import useCurrency from '../currency/useCurrency'
 import { PortfolioContext } from '../portfolio/PortfolioContext'
 import {
   NOT_FOUND,
   TREND_ICON,
-  formatCurrency,
   formatPercent,
   isNumber,
   toPercent,
@@ -25,17 +25,19 @@ function Stat({ label, value, tone = 'neutral' }) {
 
 export default function SummaryCard() {
   const { status, data } = useContext(PortfolioContext) ?? {}
+  const { formatMoney, formatSignedMoney } = useCurrency()
 
   if (status === 'loading' && !data) {
     return <section className="summary-card">Loading portfolio…</section>
   }
 
   const portfolio = data?.portfolio ?? {}
-  const { totalMarketValue, dayChangeAmount, dayChangePercent, totalReturnSinceInception, currency } = portfolio
+  // Money fields are CAD from the API; useCurrency converts them to the selected currency
+  const { totalMarketValue, dayChangeAmount, dayChangePercent, totalReturnSinceInception } = portfolio
 
   // Day change shares one tone; prefer amount, fall back to percent if amount is missing
   const dayTone = trend(isNumber(dayChangeAmount) ? dayChangeAmount : dayChangePercent)
-  const dayChange = `${withSign(dayChangeAmount, formatCurrency(dayChangeAmount, currency))} (${withSign(
+  const dayChange = `${formatSignedMoney(dayChangeAmount)} (${withSign(
     dayChangePercent,
     formatPercent(dayChangePercent),
   )})`
@@ -47,7 +49,7 @@ export default function SummaryCard() {
     <section className="summary-card" aria-label="Portfolio summary">
       <h2 className="summary-card__title">{portfolio.label ?? NOT_FOUND}</h2>
       <dl className="summary-card__stats">
-        <Stat label="Total market value" value={formatCurrency(totalMarketValue, currency)} />
+        <Stat label="Total market value" value={formatMoney(totalMarketValue)} />
         <Stat label="Day change" value={dayChange} tone={dayTone} />
         <Stat
           label="Total return since inception"

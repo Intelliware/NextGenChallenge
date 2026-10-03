@@ -70,6 +70,62 @@ body {
   margin: 0;
 }
 
+/* Floating currency switch: fixed so it stays visible without scrolling */
+.currency-toggle {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1000;
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.currency-toggle:hover,
+.currency-toggle:focus-within {
+  opacity: 1;
+}
+
+.currency-toggle button {
+  min-width: 3.25rem;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  color: #222;
+  cursor: pointer;
+}
+
+.currency-toggle button[aria-pressed="true"] {
+  background: rgba(20, 20, 20, 0.85);
+  color: #fff;
+}
+
+.currency-toggle button:disabled {
+  color: #999;
+  cursor: not-allowed;
+}
+
+.currency-toggle button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Keep footer text clear of the floating switch */
+.footer {
+  padding-right: 9rem;
+}
+
 .account-card--selected {
   border-color: #2563eb;
   box-shadow: 0 0 0 1px #2563eb;

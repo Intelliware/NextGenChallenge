@@ -2,15 +2,7 @@ export const NOT_FOUND = 'Not found'
 
 export const isNumber = (value) => typeof value === 'number' && Number.isFinite(value)
 
-export function formatCurrency(value, currency) {
-  if (!isNumber(value)) return NOT_FOUND
-  try {
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency ?? 'CAD' }).format(value)
-  } catch {
-    // Unknown currency code from the API: still show a legible number
-    return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
-  }
-}
+// Money is formatted by src/currency (useCurrency / <Money>) so it follows the CAD/USD toggle
 
 export function formatNumber(value) {
   if (!isNumber(value)) return NOT_FOUND

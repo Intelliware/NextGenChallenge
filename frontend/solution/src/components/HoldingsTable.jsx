@@ -12,7 +12,6 @@ export default function HoldingsTable() {
   }
 
   const holdings = data?.holdings ?? []
-  const currency = data?.portfolio?.currency
 
   return (
     <section className="holdings" aria-label="Holdings">
@@ -37,7 +36,7 @@ export default function HoldingsTable() {
               </tr>
             ) : (
               holdings.map((holding) => (
-                <HoldingRow key={holding.holdingId ?? holding.ticker} holding={holding} currency={currency} />
+                <HoldingRow key={holding.holdingId ?? holding.ticker} holding={holding} />
               ))
             )}
           </tbody>

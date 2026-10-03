@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Money from '../currency/Money'
 
 export default function AccountCard({ account, isSelected, onSelect }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -16,12 +17,16 @@ export default function AccountCard({ account, isSelected, onSelect }) {
       </button>
       {isOpen && (
         <dl className="account-card-body">
-          {Object.entries(account).map(([key, value]) => (
-            <div key={key} className="account-card-row">
-              <dt>{key}</dt>
-              <dd>{String(value)}</dd>
-            </div>
-          ))}
+          <div className="account-card-row">
+            <dt>Account ID</dt>
+            <dd>{account.accountId}</dd>
+          </div>
+          <div className="account-card-row">
+            <dt>Total market value</dt>
+            <dd>
+              <Money amount={account.totalMarketValue} />
+            </dd>
+          </div>
         </dl>
       )}
       <div className="account-card-footer">
