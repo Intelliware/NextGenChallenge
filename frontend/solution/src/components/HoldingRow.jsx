@@ -1,6 +1,6 @@
+import useCurrency from '../currency/useCurrency'
 import {
   TREND_ICON,
-  formatCurrency,
   formatNumber,
   formatPercent,
   isNumber,
@@ -19,13 +19,14 @@ function TrendCell({ value, children }) {
   )
 }
 
-export default function HoldingRow({ holding, currency }) {
+export default function HoldingRow({ holding }) {
+  const { formatMoney, formatSignedMoney } = useCurrency()
   const { ticker, name, assetClass, quantity, price, marketValue, weightPercent, unrealizedGainLoss } = holding
   const { dayChangeAmount, dayChangePercent } = holding
 
   // Holding percentages are decimals (0.0032 => 0.32%), unlike the portfolio's dayChangePercent
   const dayPercent = toPercent(dayChangePercent)
-  const dayChange = `${withSign(dayChangeAmount, formatCurrency(dayChangeAmount, currency))} (${withSign(
+  const dayChange = `${formatSignedMoney(dayChangeAmount)} (${withSign(
     dayPercent,
     formatPercent(dayPercent),
   )})`
@@ -38,12 +39,12 @@ export default function HoldingRow({ holding, currency }) {
       </th>
       <td>{assetClass}</td>
       <td className="holdings-table__num">{formatNumber(quantity)}</td>
-      <td className="holdings-table__num">{formatCurrency(price, currency)}</td>
-      <td className="holdings-table__num">{formatCurrency(marketValue, currency)}</td>
+      <td className="holdings-table__num">{formatMoney(price)}</td>
+      <td className="holdings-table__num">{formatMoney(marketValue)}</td>
       <td className="holdings-table__num">{formatPercent(toPercent(weightPercent))}</td>
       <TrendCell value={isNumber(dayChangeAmount) ? dayChangeAmount : dayPercent}>{dayChange}</TrendCell>
       <TrendCell value={unrealizedGainLoss}>
-        {withSign(unrealizedGainLoss, formatCurrency(unrealizedGainLoss, currency))}
+        {formatSignedMoney(unrealizedGainLoss)}
       </TrendCell>
     </tr>
   )
