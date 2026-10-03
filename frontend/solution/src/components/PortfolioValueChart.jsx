@@ -11,13 +11,15 @@ import {
 } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 import { RANGES, breakGaps, combineHistories, filterHistory } from '../portfolio/history'
-import { formatCurrency } from '../portfolio/format'
+import useCurrency from '../currency/useCurrency'
 
 ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Tooltip, Filler)
 
-// `histories` is one performanceHistory per account; they are summed into a single line
-export default function PortfolioValueChart({ histories = [], currency, title = 'Portfolio value' }) {
+// `histories` is one performanceHistory per account (raw CAD); they are summed into a single line
+export default function PortfolioValueChart({ histories = [], title = 'Portfolio value' }) {
   const [range, setRange] = useState('ALL')
+  // Values stay CAD in the dataset; formatMoney converts to the selected currency for display
+  const { formatMoney } = useCurrency()
 
   const combined = useMemo(() => combineHistories(histories), [histories])
   const points = useMemo(() => breakGaps(filterHistory(combined, range)), [combined, range])
@@ -56,12 +58,12 @@ export default function PortfolioValueChart({ histories = [], currency, title = 
         }),
       },
       y: {
-        ticks: { callback: (value) => formatCurrency(value, currency) },
+        ticks: { callback: (value) => formatMoney(value) },
       },
     },
     plugins: {
       tooltip: {
-        callbacks: { label: (ctx) => formatCurrency(ctx.parsed.y, currency) },
+        callbacks: { label: (ctx) => formatMoney(ctx.parsed.y) },
       },
     },
   }

@@ -24,7 +24,6 @@ export default function Home() {
       {portfolios.length > 0 && (
         <PortfolioValueChart
           histories={histories}
-          currency={portfolios[0].portfolio?.currency}
           title="Total value (all accounts)"
         />
       )}
