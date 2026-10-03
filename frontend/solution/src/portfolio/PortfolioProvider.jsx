@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { fetchPortfolio } from './api'
 import { PortfolioContext } from './PortfolioContext'
 
-export default function PortfolioProvider({ accountId, children }) {
+// Mounted above the routes so the selected account survives page navigation
+export default function PortfolioProvider({ children }) {
+  const [accountId, setAccountId] = useState(null)
   // `settledFor` records which accountId the current data/error belongs to
   const [result, setResult] = useState({ settledFor: null, data: null, error: null })
 
@@ -28,7 +30,13 @@ export default function PortfolioProvider({ accountId, children }) {
   else if (result.error) status = 'error'
   else if (result.data) status = 'success'
 
-  const value = { status, data: result.data, error: result.error }
+  const value = {
+    accountId,
+    selectAccount: setAccountId,
+    status,
+    data: result.data,
+    error: result.error,
+  }
 
   return <PortfolioContext.Provider value={value}>{children}</PortfolioContext.Provider>
 }

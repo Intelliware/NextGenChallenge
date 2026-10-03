@@ -1,11 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { fetchAccounts } from '../portfolio/api'
 import AccountCard from '../components/AccountCard'
+import { PortfolioContext } from '../portfolio/PortfolioContext'
 
 export default function Accounts() {
   const [accounts, setAccounts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const { accountId: selectedAccountId, selectAccount } = useContext(PortfolioContext)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const controller = new AbortController()
@@ -30,12 +34,25 @@ export default function Accounts() {
   return (
     <>
       <h1>Accounts</h1>
+      {!selectedAccountId && !isLoading && !error && accounts.length > 0 && (
+        <p>Select an account to view its dashboard.</p>
+      )}
       {isLoading && <p>Loading accounts…</p>}
       {error && <p role="alert">{error}</p>}
       {!isLoading && !error && accounts.length === 0 && <p>No accounts found.</p>}
       {accounts.map((account) => (
-        <AccountCard key={account.accountId} account={account} />
+        <AccountCard
+          key={account.accountId}
+          account={account}
+          isSelected={account.accountId === selectedAccountId}
+          onSelect={() => selectAccount(account.accountId)}
+        />
       ))}
+      {selectedAccountId && (
+        <button type="button" className="go-to-dashboard" onClick={() => navigate('/')}>
+          Go to dashboard
+        </button>
+      )}
     </>
   )
 }
