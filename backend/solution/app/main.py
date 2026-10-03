@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from app.config import Settings, get_settings
 from app.crm.client import CrmClient
 from app.errors import register_error_handlers
+from app.openapi import OPENAPI_TAGS, SWAGGER_UI_PARAMETERS, api_description, hide_validation_error_docs, operation_id
 from app.request_context import REQUEST_ID_HEADER, configure_logging, request_id_var, resolve_request_id
 from app.routes import health, history, portfolios
 
@@ -29,7 +30,10 @@ def create_app(settings: Settings | None = None, *, crm_transport: httpx.AsyncBa
     app = FastAPI(
         title="Portfolio Dashboard Backend",
         version="1.0.0",
-        description="Wealth management portfolio dashboard API. Monetary values are CAD unless stated.",
+        description=api_description(settings),
+        openapi_tags=OPENAPI_TAGS,
+        swagger_ui_parameters=SWAGGER_UI_PARAMETERS,
+        generate_unique_id_function=operation_id,
         lifespan=lifespan,
     )
     app.state.settings = settings
@@ -47,6 +51,7 @@ def create_app(settings: Settings | None = None, *, crm_transport: httpx.AsyncBa
     app.include_router(health.router)
     app.include_router(portfolios.router)
     app.include_router(history.router)
+    hide_validation_error_docs(app)
     return app
 
 
