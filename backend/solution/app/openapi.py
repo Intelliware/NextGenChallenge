@@ -17,6 +17,11 @@ OPENAPI_TAGS = [
         "name": "portfolios",
         "description": "**Task 1.** Portfolio metadata, read live from the legacy CRM and mapped into a clean schema.",
     },
+    {
+        "name": "holdings",
+        "description": "**Task 2.** Every position in a portfolio, with market value, weight and gain/loss calculated "
+        "on the server.",
+    },
     {"name": "history", "description": "**Task 3.** Daily total market value for the performance chart."},
     {"name": "health", "description": "Liveness and readiness checks for monitoring."},
 ]

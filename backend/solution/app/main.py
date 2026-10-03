@@ -16,7 +16,7 @@ from app.openapi import (
     operation_id,
 )
 from app.request_context import REQUEST_ID_HEADER, configure_logging, request_id_var, resolve_request_id
-from app.routes import health, history, portfolios
+from app.routes import health, history, holdings, portfolios
 
 
 def create_app(settings: Settings | None = None, *, crm_transport: httpx.AsyncBaseTransport | None = None) -> FastAPI:
@@ -62,6 +62,7 @@ def create_app(settings: Settings | None = None, *, crm_transport: httpx.AsyncBa
     register_error_handlers(app)
     app.include_router(health.router)
     app.include_router(portfolios.router)
+    app.include_router(holdings.router)
     app.include_router(history.router)
     hide_validation_error_docs(app)
     document_bearer_auth(app)

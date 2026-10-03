@@ -61,6 +61,22 @@ class ErrorResponse(ApiModel):
     details: dict[str, Any] | None = None
 
 
+# --- Task 2 ---
+class Holding(ApiModel):
+    ticker: str
+    name: str
+    asset_class: str
+    quantity: float
+    cost_basis_per_share: float
+    price: float
+    previous_close_price: float
+    market_value: float
+    weight_percent: float = Field(description="Decimal share of portfolio market value, e.g. 0.5579")
+    unrealized_gain_loss: float
+    day_change_amount: float
+    day_change_percent: float | None = Field(description="Decimal; null when the previous close is 0")
+
+
 # --- Task 3 ---
 class PerformanceSnapshot(ApiModel):
     model_config = ConfigDict(json_schema_extra={"example": {"date": "2026-10-03", "marketValue": 48930.0}})

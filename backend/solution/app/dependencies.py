@@ -2,6 +2,7 @@ from fastapi import Depends, Request
 
 from app.crm.client import CrmClient
 from app.services.history_service import HistoryService, load_history_file, load_portfolio_ids
+from app.services.holdings_service import HoldingsService
 from app.services.portfolio_service import PortfolioService
 
 
@@ -11,6 +12,10 @@ def get_crm_client(request: Request) -> CrmClient:
 
 def get_portfolio_service(crm: CrmClient = Depends(get_crm_client)) -> PortfolioService:
     return PortfolioService(crm)
+
+
+def get_holdings_service() -> HoldingsService:
+    return HoldingsService()
 
 
 def get_history_service(request: Request) -> HistoryService:
