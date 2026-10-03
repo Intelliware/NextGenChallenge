@@ -3,48 +3,49 @@ import { fetchExchangeRate } from '../portfolio/api'
 import { BASE_CURRENCY, SUPPORTED_CURRENCIES, convertFromCad } from './convert'
 import { CurrencyContext } from './CurrencyContext'
 import { formatMoney, formatSignedMoney } from './format'
-
-const STORAGE_KEY = 'preferredCurrency'
-
-function readStoredCurrency() {
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY)
-    return SUPPORTED_CURRENCIES.includes(stored) ? stored : BASE_CURRENCY
-  } catch {
-    return BASE_CURRENCY
-  }
-}
+import { RATE_TTL_MS, nextRateState } from './rateCache'
 
 export default function CurrencyProvider({ children }) {
-  const [selectedCurrency, setSelectedCurrency] = useState(readStoredCurrency)
-  const [rate, setRate] = useState({ status: 'loading', cadToUsd: null })
+  // Not persisted: every visit starts in CAD
+  const [selectedCurrency, setSelectedCurrency] = useState(BASE_CURRENCY)
+  // In-memory cache of the rate: { status, cadToUsd, fetchedAt }
+  const [rate, setRate] = useState({ status: 'loading', cadToUsd: null, fetchedAt: null })
 
+  // Fetch the rate once on load, then refresh it every RATE_TTL_MS. Nothing else calls the API.
   useEffect(() => {
-    const controller = new AbortController()
+    let controller = null
 
-    fetchExchangeRate({ signal: controller.signal })
-      .then((data) => setRate({ status: 'success', cadToUsd: data.CADtoUSD }))
-      .catch((error) => {
-        if (error.name === 'AbortError') return
-        console.error('GET /exchange-rate failed:', error)
-        setRate({ status: 'error', cadToUsd: null })
-      })
+    function refresh() {
+      controller?.abort()
+      controller = new AbortController()
+      fetchExchangeRate({ signal: controller.signal })
+        .then((data) =>
+          setRate((prev) =>
+            nextRateState(prev, { ok: true, cadToUsd: data.CADtoUSD, fetchedAt: Date.now() }),
+          ),
+        )
+        .catch((error) => {
+          if (error.name === 'AbortError') return
+          console.error('GET /exchange-rate failed:', error)
+          setRate((prev) => nextRateState(prev, { ok: false }))
+        })
+    }
 
-    return () => controller.abort()
+    refresh()
+    const interval = setInterval(refresh, RATE_TTL_MS)
+
+    return () => {
+      clearInterval(interval)
+      controller?.abort()
+    }
   }, [])
 
-  const isUsdAvailable = rate.status === 'success' && Number.isFinite(rate.cadToUsd)
-  // Until a rate is available, show CAD everywhere so values are never mixed or mislabelled
+  const isUsdAvailable = Number.isFinite(rate.cadToUsd)
+  // Until a rate has loaded, show CAD everywhere so values are never mixed or mislabelled
   const currency = selectedCurrency === 'USD' && !isUsdAvailable ? BASE_CURRENCY : selectedCurrency
 
   const setCurrency = useCallback((next) => {
-    if (!SUPPORTED_CURRENCIES.includes(next)) return
-    setSelectedCurrency(next)
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next)
-    } catch {
-      // Storage can be unavailable (private mode); the choice still applies for this session
-    }
+    if (SUPPORTED_CURRENCIES.includes(next)) setSelectedCurrency(next)
   }, [])
 
   const value = useMemo(() => {
