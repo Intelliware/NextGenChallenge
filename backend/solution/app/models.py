@@ -72,3 +72,14 @@ class PerformanceSnapshot(ApiModel):
 
     date: str = Field(description="Snapshot date, YYYY-MM-DD")
     market_value: float = Field(description="Total portfolio market value on that date")
+
+
+# --- Task 5 ---
+class AllocationEntry(ApiModel):
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"assetClass": "Equity", "value": 27300.0, "percent": 0.5579}}
+    )
+
+    asset_class: str = Field(description='e.g. "Equity", "Fixed Income", "Cash", "Alternatives"')
+    value: float = Field(description="Total market value held in this asset class")
+    percent: float = Field(description="Decimal share of portfolio market value, e.g. 0.5579")

@@ -1,6 +1,6 @@
 # Portfolio Dashboard Backend (Python / FastAPI)
 
-Status: **Task 1 (Portfolio Metadata via CRM Integration)**, **Task 2 (Holdings)** and **Task 3 (Performance History)** are complete. Other tasks are not started yet. The code is structured for Task 9 (caching) and Task 4 (auth) to slot in; see "Extending" below.
+Status: **Task 1 (Portfolio Metadata via CRM Integration)**, **Task 2 (Holdings)**, **Task 3 (Performance History)** and **Task 5 (Asset Allocation)** are complete. Other tasks are not started yet. The code is structured for Task 9 (caching) and Task 4 (auth) to slot in; see "Extending" below.
 
 Working on this as a team? Read [TEAM-GUIDE.md](TEAM-GUIDE.md) first. It covers the pinned stack, who owns which files, coding conventions, and the decisions we need to agree on.
 
@@ -23,7 +23,7 @@ pip install -r requirements-dev.txt
 uvicorn app.main:app --port 3000 --reload
 ```
 
-Try it: <http://localhost:3000/portfolios/P-9001> and <http://localhost:3000/portfolios/P-9001/performance-history?range=1M>. Interactive API docs: <http://localhost:3000/docs>.
+Try it: <http://localhost:3000/portfolios/P-9001>, <http://localhost:3000/portfolios/P-9001/performance-history?range=1M> and <http://localhost:3000/portfolios/P-9001/allocation>. Interactive API docs: <http://localhost:3000/docs>.
 
 Configuration comes from environment variables (or a `.env` file; see [.env.example](.env.example)):
 
@@ -57,6 +57,7 @@ pytest -m integration         # only the live tests (start node backend/mock-crm
 | `tests/test_integration_mock_crm.py` | Live against the supplied mock: all modes, call counts, and 10 requests in `auto` mode without a crash or hang. |
 | `tests/test_holdings.py` | Holdings calculations without HTTP (P-9001 values, zero quantity, zero previous close, empty portfolio) and the endpoint (all 12 camelCase fields, JSON `null`, `[]`, 404). |
 | `tests/test_history.py` | Task 3, with today pinned and made-up data (no generated file needed): every range's window, month-end and leap-year clamping, gaps, future dates, short history, range parsing, file loading, and the HTTP layer (400/404/503, empty portfolio, OpenAPI). |
+| `tests/test_allocation.py` | Task 5: summing several holdings in one class and the zero-total guard without HTTP (made-up holdings), and the endpoint (P-9001 values and order in camelCase, single class at exactly `1.0`, `[]`, 404). |
 
 ## `GET /portfolios/{id}`
 
@@ -223,13 +224,45 @@ The data comes from `backend/fixtures/performance-history.json`, which `node bac
 - **A missing history file doesn't stop the server**, so `/portfolios/{id}` keeps working and only this endpoint returns 503. Once loaded, the file is cached for the life of the process, so **restart the backend after regenerating it** (for example the next day, so `1D` and `YTD` line up with the new date).
 - **Until the shared seed loader (`app/data/seed.py`, see [TEAM-GUIDE.md](TEAM-GUIDE.md)) exists**, `app/services/history_service.py` reads both JSON files itself. Switching over only touches `get_history_service` in `app/dependencies.py`.
 
+## `GET /portfolios/{id}/allocation` (Task 5)
+
+Portfolio market value broken down by asset class, for the allocation chart. Like holdings, it's calculated on each request from `backend/fixtures/seed.json` (in `app/calculations/allocation.py`) and doesn't call the CRM.
+
+```sh
+curl localhost:3000/portfolios/P-9001/allocation
+```
+
+```json
+[
+  { "assetClass": "Equity", "value": 27300.0, "percent": 0.5579399141630901 },
+  { "assetClass": "Fixed Income", "value": 21630.0, "percent": 0.44206008583690987 }
+]
+```
+
+| Situation | Status | Response |
+| --- | --- | --- |
+| Known portfolio | 200 | One entry per asset class held, largest `value` first |
+| Known portfolio in a single asset class (`P-SINGLE`) | 200 | One entry with `percent: 1.0` |
+| Known portfolio with no holdings (`P-EMPTY`) | 200 | `[]` |
+| Unknown id | 404 | `portfolio_not_found` |
+
+**Decisions:**
+
+- **Only classes the portfolio holds are returned.** There are no zero rows for Cash or Alternatives, so a single-class portfolio gets exactly one entry. With one class, `value` and the total are the same number, so `percent` is exactly `1.0`, not `0.9999…`.
+- **Portfolio total:** `percent` divides by the sum of this portfolio's holding market values, the same total `weightPercent` uses in holdings, not the CRM's `totalMarketValue`. A class's `percent` therefore equals the sum of its holdings' `weightPercent`. If the total is 0, every `percent` is 0.
+- **Zero-quantity holdings still count toward their class.** `ZERO` in `P-9001` adds 0 to Equity. A class whose holdings all have quantity 0 appears with `value: 0`.
+- **Asset class names are used exactly as they appear in the seed**, with no case or spacing clean-up, so `"Equity"` and `"equity"` would be two entries.
+- **Order:** largest `value` first. Ties keep the order the holdings appear in the seed.
+- **No rounding**, the same as holdings.
+- **Empty vs unknown:** the seed's portfolio list decides whether an id exists, the same as holdings. A portfolio with no holdings returns `[]`.
+
 ## Project layout
 
 ```text
 app/
   main.py                    create_app(): lifespan (shared HTTP client), request-id middleware, routers
   config.py                  Settings from env vars
-  models.py                  PortfolioMetadata, Holding, PerformanceSnapshot, ErrorResponse (camelCase on the wire)
+  models.py                  PortfolioMetadata, Holding, PerformanceSnapshot, AllocationEntry, ErrorResponse (camelCase on the wire)
   errors.py                  Exception -> HTTP status + error body
   request_context.py         Request ids and logging
   dependencies.py            FastAPI dependency wiring
@@ -243,6 +276,9 @@ app/
   calculations/holdings.py   Pure holding calculations: market value, weight, gain/loss
   services/holdings_service.py   404 check, then calculate
   routes/holdings.py         GET /portfolios/{id}/holdings
+  calculations/allocation.py     Pure grouping of holding market values by asset class
+  services/allocation_service.py 404 check, then calculate
+  routes/allocation.py       GET /portfolios/{id}/allocation
 scripts/fake_crm.py          Scenario-driven fake CRM
 tests/                       pytest suites and fixtures/crm/
 ```
@@ -251,11 +287,11 @@ tests/                       pytest suites and fixtures/crm/
 
 - **Task 9 (cache):** wrap `PortfolioService.get_metadata`. Cache the mapped `PortfolioMetadata` per id. On `CrmTimeout` or `CrmUnavailable` with an expired entry, serve it with `stale: true`. `CrmNotFound` and `CrmBadResponse` should probably not fall back to stale data; decide and document.
 - **Task 4 (auth):** add a dependency or middleware before the routers. `/health` should probably stay public. The API tests in `tests/test_history.py` will then need the token header too.
-- **Task 7 (currency):** convert in the route or service after mapping; `currency` is already in the response. For history, convert in `_to_response` in `app/services/history_service.py`, which builds every snapshot.
+- **Task 7 (currency):** convert in the route or service after mapping; `currency` is already in the response. For history, convert in `_to_response` in `app/services/history_service.py`, which builds every snapshot. For allocation, convert only `value`; `percent` is a ratio and doesn't change.
 
 ## Unfinished / known limitations
 
-- Only Tasks 1, 2 and 3 are implemented.
+- Only Tasks 1, 2, 3 and 5 are implemented.
 - There's no authentication yet, so the endpoints are open (Task 4).
 - There's no caching yet (Task 9): every request calls the CRM.
 - Performance history is read once per process, so a regenerated file needs a restart. History values aren't converted to other currencies yet (Task 7).
