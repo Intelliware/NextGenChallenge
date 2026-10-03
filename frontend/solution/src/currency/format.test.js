@@ -23,9 +23,9 @@ test('formatSignedMoney signs gains and losses and keeps zero neutral', () => {
   assert.equal(formatSignedMoney(-0.001), '$0.00 CAD')
 })
 
-test('missing or non-numeric amounts render as a dash', () => {
+test('missing or non-numeric amounts render as Not found', () => {
   for (const value of [null, undefined, NaN, Infinity, '65680']) {
-    assert.equal(formatMoney(value), '—')
-    assert.equal(formatSignedMoney(value), '—')
+    assert.equal(formatMoney(value), 'Not found')
+    assert.equal(formatSignedMoney(value), 'Not found')
   }
 })

@@ -13,9 +13,9 @@ test('USD amounts use the CADtoUSD rate', () => {
   assert.equal(formatMoney(convertFromCad(24465, 'USD', 0.73), 'USD'), '$17,859.45 USD')
 })
 
-test('missing amounts are passed through so formatting can show a dash', () => {
+test('missing amounts are passed through so formatting can show Not found', () => {
   assert.equal(convertFromCad(null, 'USD', 0.73), null)
-  assert.equal(formatMoney(convertFromCad(undefined, 'USD', 0.73), 'USD'), '—')
+  assert.equal(formatMoney(convertFromCad(undefined, 'USD', 0.73), 'USD'), 'Not found')
 })
 
 test('converting to USD without a rate throws rather than showing CAD as USD', () => {

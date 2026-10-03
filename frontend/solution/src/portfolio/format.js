@@ -1,3 +1,4 @@
+// Shown for any missing value; src/currency/format.js uses it too so money and numbers match
 export const NOT_FOUND = 'Not found'
 
 export const isNumber = (value) => typeof value === 'number' && Number.isFinite(value)

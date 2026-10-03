@@ -1,7 +1,8 @@
 // Single place that turns raw amounts into display strings. Components must not
 // format money themselves, so a currency switch applies everywhere at once.
 
-const MISSING = '—'
+import { NOT_FOUND } from '../portfolio/format.js'
+
 const formatters = new Map()
 
 function getFormatter(currency, signDisplay) {
@@ -22,7 +23,7 @@ function getFormatter(currency, signDisplay) {
 }
 
 function format(amount, currency, signDisplay) {
-  if (typeof amount !== 'number' || !Number.isFinite(amount)) return MISSING
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) return NOT_FOUND
   return `${getFormatter(currency, signDisplay).format(amount)} ${currency}`
 }
 
