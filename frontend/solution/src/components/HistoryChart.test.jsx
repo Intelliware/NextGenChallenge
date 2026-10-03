@@ -1,7 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { describe, expect, test, vi } from 'vitest'
 import { makeCurrency, renderWithContext } from '../test/utils'
-import PortfolioValueChart from './PortfolioValueChart'
+import HistoryChart from './HistoryChart'
 
 // jsdom has no canvas, so replace the Chart.js line with a stub that records its props
 const lineProps = vi.hoisted(() => ({ current: null }))
@@ -14,13 +14,13 @@ vi.mock('react-chartjs-2', () => ({
 
 const today = new Date().toISOString().slice(0, 10)
 const history = [
-  { date: '2020-01-01', marketValue: 50000 },
-  { date: today, marketValue: 65680 },
+  { date: '2020-01-01', value: 50000 },
+  { date: today, value: 65680 },
 ]
 
-describe('PortfolioValueChart', () => {
+describe('HistoryChart', () => {
   test('plots the history with every range button and ALL selected', () => {
-    renderWithContext(<PortfolioValueChart histories={[history]} title="Total value" />)
+    renderWithContext(<HistoryChart histories={[history]} title="Total value" />)
 
     expect(screen.getByRole('heading', { name: 'Total value' })).toBeInTheDocument()
     expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['1D', '1M', 'YTD', '1Y', 'ALL'])
@@ -32,7 +32,7 @@ describe('PortfolioValueChart', () => {
   })
 
   test('filters to the selected range', () => {
-    renderWithContext(<PortfolioValueChart histories={[history]} />)
+    renderWithContext(<HistoryChart histories={[history]} />)
     fireEvent.click(screen.getByRole('button', { name: '1M' }))
 
     expect(screen.getByRole('button', { name: '1M' })).toHaveAttribute('aria-pressed', 'true')
@@ -40,7 +40,7 @@ describe('PortfolioValueChart', () => {
   })
 
   test('formats axis ticks and tooltips in the selected currency', () => {
-    renderWithContext(<PortfolioValueChart histories={[history]} />, { currency: makeCurrency({ currency: 'USD' }) })
+    renderWithContext(<HistoryChart histories={[history]} />, { currency: makeCurrency({ currency: 'USD' }) })
     const { scales, plugins } = lineProps.current.options
 
     expect(scales.y.ticks.callback(1000)).toBe('$730.00 USD')
@@ -48,7 +48,7 @@ describe('PortfolioValueChart', () => {
   })
 
   test('shows a message when the range has no points', () => {
-    renderWithContext(<PortfolioValueChart histories={[]} />)
+    renderWithContext(<HistoryChart histories={[]} />)
     expect(screen.getByText('No history available for this range.')).toBeInTheDocument()
   })
 })

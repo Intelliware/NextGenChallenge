@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest'
 import { jsonResponse } from '../test/utils'
-import { fetchAccounts, fetchExchangeRate, fetchPortfolio, withScenario } from './api.js'
+import { fetchAccounts, fetchExchangeRate, fetchHoldingDetail, fetchPortfolio, withScenario } from './api.js'
 
 describe('withScenario', () => {
   test('returns the path unchanged without mock params', () => {
@@ -28,11 +28,13 @@ describe('fetch functions', () => {
     await expect(fetchAccounts()).resolves.toEqual([{ accountId: 'P-9001' }])
     await fetchPortfolio('P 9001')
     await fetchExchangeRate()
+    await fetchHoldingDetail('BRK.B')
 
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
       'http://localhost:4000/accounts',
       'http://localhost:4000/portfolios/P%209001',
       'http://localhost:4000/exchange-rate',
+      'http://localhost:4000/holdings/BRK.B/detail',
     ])
   })
 

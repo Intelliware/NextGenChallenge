@@ -1,8 +1,16 @@
 import { describe, expect, test } from 'vitest'
-import { RANGES, breakGaps, combineHistories, filterHistory, rangeStart } from './history.js'
+import {
+  RANGES,
+  breakGaps,
+  combineHistories,
+  filterHistory,
+  fromPerformanceHistory,
+  fromPriceHistory,
+  rangeStart,
+} from './history.js'
 
 const at = (date) => new Date(`${date}T12:00:00Z`)
-const point = (date, marketValue) => ({ date, marketValue })
+const point = (date, value) => ({ date, value })
 
 describe('rangeStart', () => {
   test('offers the five ranges from the spec', () => {
@@ -30,8 +38,8 @@ describe('filterHistory', () => {
   const history = [point('2025-06-01', 1), point('2026-01-05', 2), point('2026-10-02', 3), point('2026-10-03', 4)]
 
   test('keeps only points inside the range', () => {
-    expect(filterHistory(history, 'YTD', at('2026-10-03')).map((p) => p.marketValue)).toEqual([2, 3, 4])
-    expect(filterHistory(history, '1D', at('2026-10-03')).map((p) => p.marketValue)).toEqual([3, 4])
+    expect(filterHistory(history, 'YTD', at('2026-10-03')).map((p) => p.value)).toEqual([2, 3, 4])
+    expect(filterHistory(history, '1D', at('2026-10-03')).map((p) => p.value)).toEqual([3, 4])
   })
 
   test('returns what exists when history is shorter than the range', () => {
@@ -82,5 +90,17 @@ describe('breakGaps', () => {
       point('2026-10-04', null),
       point('2026-10-10', 4),
     ])
+  })
+})
+
+describe('fromPerformanceHistory / fromPriceHistory', () => {
+  test('map API series to the generic { date, value } shape', () => {
+    expect(fromPerformanceHistory([{ date: '2026-10-03', marketValue: 65680 }])).toEqual([point('2026-10-03', 65680)])
+    expect(fromPriceHistory([{ date: '2026-10-03', price: 227.5 }])).toEqual([point('2026-10-03', 227.5)])
+  })
+
+  test('treat a missing series as empty', () => {
+    expect(fromPerformanceHistory(undefined)).toEqual([])
+    expect(fromPriceHistory()).toEqual([])
   })
 })

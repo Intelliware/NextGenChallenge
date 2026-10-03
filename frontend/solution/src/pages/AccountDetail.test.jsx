@@ -5,7 +5,7 @@ import { SAMPLE_PORTFOLIO, makePortfolio, renderWithContext } from '../test/util
 import AccountDetail from './AccountDetail'
 
 // jsdom has no canvas; the chart has its own tests
-vi.mock('../components/PortfolioValueChart', () => ({ default: ({ title }) => <p>{title}</p> }))
+vi.mock('../components/HistoryChart', () => ({ default: ({ title }) => <p>{title}</p> }))
 
 // AccountDetail at /accounts/:accountId with the given portfolio context
 function renderDetail(portfolio, route = '/accounts/P-9001') {

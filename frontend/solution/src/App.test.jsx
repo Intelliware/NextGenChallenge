@@ -14,7 +14,7 @@ vi.mock('./portfolio/api', async () => {
   }
 })
 // jsdom has no canvas; the chart has its own tests
-vi.mock('./components/PortfolioValueChart', () => ({ default: ({ title }) => <p>{title}</p> }))
+vi.mock('./components/HistoryChart', () => ({ default: ({ title }) => <p>{title}</p> }))
 
 // The real app (both providers, routes and layout) starting at `route`
 function renderApp(route) {

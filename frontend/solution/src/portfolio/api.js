@@ -46,3 +46,9 @@ export function fetchAccounts({ signal } = {}) {
 export function fetchExchangeRate({ signal } = {}) {
   return getJson('/exchange-rate', 'Failed to load exchange rate', signal)
 }
+
+// Security details for one ticker: { ticker, name, sector, assetClass, price, costBasisPerShare,
+// purchaseDate, dividendYield, fiftyTwoWeekLow, fiftyTwoWeekHigh, priceHistory: [{ date, price }] }
+export function fetchHoldingDetail(ticker, { signal } = {}) {
+  return getJson(`/holdings/${encodeURIComponent(ticker)}/detail`, `Failed to load holding ${ticker}`, signal)
+}

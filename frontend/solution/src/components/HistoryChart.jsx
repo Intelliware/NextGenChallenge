@@ -15,8 +15,9 @@ import useCurrency from '../currency/useCurrency'
 
 ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Tooltip, Filler)
 
-// `histories` is one performanceHistory per account (raw CAD); they are summed into a single line
-export default function PortfolioValueChart({ histories = [], title = 'Portfolio value' }) {
+// `histories` is a list of [{ date, value }] series (raw CAD), summed into a single line.
+// Pass one series for a single account or a single security's price.
+export default function HistoryChart({ histories = [], title }) {
   const [range, setRange] = useState('ALL')
   // Values stay CAD in the dataset; formatMoney converts to the selected currency for display
   const { formatMoney } = useCurrency()
@@ -24,14 +25,14 @@ export default function PortfolioValueChart({ histories = [], title = 'Portfolio
   const combined = useMemo(() => combineHistories(histories), [histories])
   const points = useMemo(() => breakGaps(filterHistory(combined, range)), [combined, range])
 
-  const realPoints = points.filter((p) => p.marketValue !== null).length
+  const realPoints = points.filter((p) => p.value !== null).length
   // Show dots when there are too few points to form a readable line
   const pointRadius = realPoints <= 2 ? 4 : 0
 
   const data = {
     datasets: [
       {
-        data: points.map((p) => ({ x: p.date, y: p.marketValue })),
+        data: points.map((p) => ({ x: p.date, y: p.value })),
         borderColor: '#2563eb',
         backgroundColor: 'rgba(37, 99, 235, 0.1)',
         fill: true,

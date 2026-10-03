@@ -4,7 +4,7 @@ import { SAMPLE_PORTFOLIO, makeCurrency, renderWithContext } from '../test/utils
 import OverviewPanel from './OverviewPanel'
 
 // jsdom has no canvas; the chart has its own tests
-vi.mock('./PortfolioValueChart', () => ({
+vi.mock('./HistoryChart', () => ({
   default: ({ title, histories }) => <p>{`${title}: ${histories.length} histories`}</p>,
 }))
 

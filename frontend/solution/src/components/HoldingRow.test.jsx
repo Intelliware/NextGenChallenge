@@ -1,19 +1,34 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { describe, expect, test } from 'vitest'
 import { SAMPLE_PORTFOLIO, makeCurrency, renderWithContext } from '../test/utils'
 import HoldingRow from './HoldingRow'
 
 const [aapl, bnd] = SAMPLE_PORTFOLIO.holdings
 
-// HoldingRow renders a <tr>, which must sit inside a table
-function renderRow(holding, options) {
+// Stand-in holding page that shows the URL it was reached with
+function HoldingPage() {
+  const { pathname, search } = useLocation()
+  return <p>{`Holding page ${pathname}${search}`}</p>
+}
+
+// HoldingRow renders a <tr>, which must sit inside a table, on an account page (for :accountId)
+function renderRow(holding, { route = '/accounts/P-9001', ...options } = {}) {
   renderWithContext(
-    <table>
-      <tbody>
-        <HoldingRow holding={holding} />
-      </tbody>
-    </table>,
-    options,
+    <Routes>
+      <Route
+        path="/accounts/:accountId"
+        element={
+          <table>
+            <tbody>
+              <HoldingRow holding={holding} />
+            </tbody>
+          </table>
+        }
+      />
+      <Route path="/accounts/:accountId/holdings/:ticker" element={<HoldingPage />} />
+    </Routes>,
+    { route, ...options },
   )
   return screen.getByRole('row')
 }
@@ -33,6 +48,19 @@ describe('HoldingRow', () => {
       '▲ +$639.60 CAD (+2.40%)',
       '▲ +$3,300.00 CAD',
     ])
+  })
+
+  test('links the ticker to its holding page, keeping the mock query string', () => {
+    const row = renderRow(aapl, { route: '/accounts/P-9001?scenario=large' })
+    expect(within(row).getByRole('link', { name: 'AAPL' })).toHaveAttribute(
+      'href',
+      '/accounts/P-9001/holdings/AAPL?scenario=large',
+    )
+  })
+
+  test('opens the holding page when the row is clicked', () => {
+    fireEvent.click(within(renderRow(aapl)).getByText('Equity'))
+    expect(screen.getByText('Holding page /accounts/P-9001/holdings/AAPL')).toBeInTheDocument()
   })
 
   test('styles losses as negative', () => {

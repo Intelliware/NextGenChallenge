@@ -6,7 +6,7 @@ import Home from './Home'
 
 vi.mock('../portfolio/usePortfolios', () => ({ default: vi.fn() }))
 // The chart has its own tests; stub it so Home doesn't need a canvas
-vi.mock('../components/PortfolioValueChart', () => ({
+vi.mock('../components/HistoryChart', () => ({
   default: ({ title, histories }) => <p>{`${title}: ${histories.length} accounts`}</p>,
 }))
 
