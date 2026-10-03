@@ -142,6 +142,32 @@ body {
   padding: 0.5rem 1rem;
 }
 
+.overview-panel {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+/* Inner sections drop their own card styling; a divider separates them */
+.overview-panel .summary-card,
+.overview-panel .value-chart {
+  margin-top: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.overview-panel .value-chart {
+  border-top: 1px solid #ddd;
+}
+
+.overview-panel > p {
+  margin: 0;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #ddd;
+}
+
 .summary-card {
   padding: 1rem 1.5rem;
   border: 1px solid #ddd;
