@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import PortfolioValueChart from './PortfolioValueChart'
+import HistoryChart from './HistoryChart'
+import { fromPerformanceHistory } from '../portfolio/history'
 import SummaryCard from './SummaryCard'
 import { isNumber } from '../portfolio/format'
 
@@ -24,7 +25,7 @@ function combineSummaries(portfolios) {
 
 // Number overview on top, value chart beneath, for all accounts combined
 export default function OverviewPanel({ status, portfolios, error }) {
-  const histories = useMemo(() => portfolios.map((p) => p.performanceHistory ?? []), [portfolios])
+  const histories = useMemo(() => portfolios.map((p) => fromPerformanceHistory(p.performanceHistory)), [portfolios])
   const summary = useMemo(() => combineSummaries(portfolios), [portfolios])
   const isLoading = status === 'loading' && portfolios.length === 0
 
@@ -33,7 +34,7 @@ export default function OverviewPanel({ status, portfolios, error }) {
       <SummaryCard summary={summary} loading={isLoading} showTotalReturn={false} />
       {status === 'error' && <p role="alert">{error.message}</p>}
       {portfolios.length > 0 && (
-        <PortfolioValueChart histories={histories} title="Total value (all accounts)" />
+        <HistoryChart histories={histories} title="Total value (all accounts)" />
       )}
     </section>
   )

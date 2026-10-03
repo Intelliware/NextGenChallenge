@@ -1,4 +1,4 @@
-// Pure helpers over performanceHistory: [{ date: 'YYYY-MM-DD', marketValue }], sorted by date
+// Pure helpers over date series: [{ date: 'YYYY-MM-DD', value }] (account value, price, ...), sorted by date
 
 export const RANGES = ['1D', '1M', 'YTD', '1Y', 'ALL']
 
@@ -49,12 +49,12 @@ export function combineHistories(histories = []) {
   for (const date of dates) {
     series.forEach((h, i) => {
       while (cursors[i] < h.length && h[cursors[i]].date <= date) {
-        last[i] = h[cursors[i]].marketValue
+        last[i] = h[cursors[i]].value
         cursors[i]++
       }
     })
     if (last.every((v) => v !== null)) {
-      combined.push({ date, marketValue: last.reduce((sum, v) => sum + v, 0) })
+      combined.push({ date, value: last.reduce((sum, v) => sum + v, 0) })
     }
   }
   return combined
@@ -72,6 +72,13 @@ export function breakGaps(history = []) {
     if (i === 0) return [point]
     const prev = toTime(history[i - 1].date)
     if (toTime(point.date) - prev <= typical * 1.5) return [point]
-    return [{ date: toDate(prev + typical), marketValue: null }, point]
+    return [{ date: toDate(prev + typical), value: null }, point]
   })
 }
+
+// API performanceHistory uses `marketValue`; the chart helpers use a generic `value`
+export const fromPerformanceHistory = (history = []) =>
+  history.map((point) => ({ date: point.date, value: point.marketValue }))
+
+export const fromPriceHistory = (history = []) =>
+  history.map((point) => ({ date: point.date, value: point.price }))

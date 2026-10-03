@@ -1,3 +1,4 @@
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import useCurrency from '../currency/useCurrency'
 import {
   TREND_ICON,
@@ -21,6 +22,9 @@ function TrendCell({ value, children }) {
 
 export default function HoldingRow({ holding }) {
   const { formatMoney, formatSignedMoney } = useCurrency()
+  const { accountId } = useParams()
+  const navigate = useNavigate()
+  const { search } = useLocation()
   const { ticker, name, assetClass, quantity, price, marketValue, weightPercent, unrealizedGainLoss } = holding
   const { dayChangeAmount, dayChangePercent } = holding
 
@@ -31,10 +35,16 @@ export default function HoldingRow({ holding }) {
     formatPercent(dayPercent),
   )})`
 
+  // Keep ?scenario= etc. so the detail page loads from the same dataset
+  const detailPath = `/accounts/${encodeURIComponent(accountId)}/holdings/${encodeURIComponent(ticker)}${search}`
+
+  // The whole row is clickable for mouse users; the ticker link covers keyboard and screen readers
   return (
-    <tr>
+    <tr className="holdings-table__row--link" onClick={() => navigate(detailPath)}>
       <th scope="row">
-        <span className="holdings-table__ticker">{ticker}</span>
+        <Link to={detailPath} className="holdings-table__ticker" onClick={(e) => e.stopPropagation()}>
+          {ticker}
+        </Link>
         <span className="holdings-table__name">{name}</span>
       </th>
       <td>{assetClass}</td>

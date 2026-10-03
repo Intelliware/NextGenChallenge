@@ -44,3 +44,19 @@ export async function fetchExchangeRate({ signal } = {}) {
   // { CADtoUSD: 0.73 }
   return res.json()
 }
+
+export async function fetchHoldingDetail(ticker, { signal } = {}) {
+  const res = await fetch(
+    `${API_BASE_URL}${withScenario(`/holdings/${encodeURIComponent(ticker)}/detail`)}`,
+    { signal },
+  )
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.message ?? `Failed to load holding ${ticker} (HTTP ${res.status})`)
+  }
+
+  // { ticker, name, sector, assetClass, price, costBasisPerShare, purchaseDate, dividendYield,
+  //   fiftyTwoWeekLow, fiftyTwoWeekHigh, priceHistory: [{ date, price }] }
+  return res.json()
+}

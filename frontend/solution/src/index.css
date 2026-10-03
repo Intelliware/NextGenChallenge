@@ -325,3 +325,86 @@ body {
   display: inline-block;
   margin-bottom: 0.5rem;
 }
+
+.holdings-table__row--link {
+  cursor: pointer;
+}
+
+.holdings-table__row--link:hover {
+  background: #f5f8ff;
+}
+
+.holdings-table__row--link .holdings-table__ticker {
+  color: inherit;
+  text-decoration: none;
+}
+
+.holdings-table__row--link:hover .holdings-table__ticker,
+.holdings-table__row--link .holdings-table__ticker:focus-visible {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.holding-detail__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.holding-detail__header h1 {
+  margin: 0;
+}
+
+.holding-detail__name {
+  margin-left: 0.75rem;
+  font-size: 1rem;
+  font-weight: normal;
+  color: #666;
+}
+
+.holding-detail__price {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.holding-detail__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.range-bar {
+  margin-top: 1.25rem;
+}
+
+.range-bar__labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.range-bar__track {
+  position: relative;
+  height: 6px;
+  margin-top: 0.5rem;
+  border-radius: 3px;
+  background: #e5e7eb;
+}
+
+.range-bar__marker {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #2563eb;
+  transform: translate(-50%, -50%);
+}
