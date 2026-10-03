@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatMoney } from '../currency/format'
+import Money from '../currency/Money'
 
 export default function AccountCard({ account }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -23,7 +23,9 @@ export default function AccountCard({ account }) {
           </div>
           <div className="account-card-row">
             <dt>Total market value</dt>
-            <dd>{formatMoney(account.totalMarketValue)}</dd>
+            <dd>
+              <Money amount={account.totalMarketValue} />
+            </dd>
           </div>
         </dl>
       )}

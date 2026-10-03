@@ -32,3 +32,15 @@ export async function fetchAccounts({ signal } = {}) {
   // [{ accountId, label, totalMarketValue }]
   return res.json()
 }
+
+export async function fetchExchangeRate({ signal } = {}) {
+  const res = await fetch(`${API_BASE_URL}${withScenario('/exchange-rate')}`, { signal })
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.message ?? `Failed to load exchange rate (HTTP ${res.status})`)
+  }
+
+  // { CADtoUSD: 0.73 }
+  return res.json()
+}
