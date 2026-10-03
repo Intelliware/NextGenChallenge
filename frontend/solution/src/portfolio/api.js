@@ -20,3 +20,15 @@ export async function fetchPortfolio(accountId, { signal } = {}) {
   // { asOf, portfolio, holdings, allocation, performanceHistory }
   return res.json()
 }
+
+export async function fetchAccounts({ signal } = {}) {
+  const res = await fetch(`${API_BASE_URL}${withScenario('/accounts')}`, { signal })
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.message ?? `Failed to load accounts (HTTP ${res.status})`)
+  }
+
+  // [{ accountId, label, totalMarketValue }]
+  return res.json()
+}
