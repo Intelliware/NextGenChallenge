@@ -48,3 +48,11 @@ class ErrorResponse(ApiModel):
     message: str = Field(description="Human-readable explanation")
     request_id: str = Field(description="Matches the X-Request-ID response header")
     details: dict[str, Any] | None = None
+
+
+# --- Task 3 ---
+class PerformanceSnapshot(ApiModel):
+    model_config = ConfigDict(json_schema_extra={"example": {"date": "2026-10-03", "marketValue": 48930.0}})
+
+    date: str = Field(description="Snapshot date, YYYY-MM-DD")
+    market_value: float = Field(description="Total portfolio market value on that date")

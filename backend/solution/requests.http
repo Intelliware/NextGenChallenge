@@ -1,4 +1,4 @@
-# Task 1 requests. Use an HTTP client that supports .http files (VS Code REST Client, JetBrains),
+# Example requests. Use an HTTP client that supports .http files (VS Code REST Client, JetBrains),
 # or copy each request into curl.
 @backend = http://localhost:3000
 @crm = http://localhost:4002
@@ -68,3 +68,26 @@ POST {{fake}}/__control
 Content-Type: application/json
 
 { "scenario": "ok_p9001", "slow_ms": 0, "status": null }
+
+### --- Task 3: performance history (run node backend/fixtures/generate-history.mjs first; no CRM needed) ---
+
+### Last day: 2 points, yesterday and today
+GET {{backend}}/portfolios/P-9001/performance-history?range=1D
+
+### Year to date: from January 1
+GET {{backend}}/portfolios/P-9001/performance-history?range=YTD
+
+### No range means All (401 days)
+GET {{backend}}/portfolios/P-9001/performance-history
+
+### Less history than the range: all 60 days, no padding
+GET {{backend}}/portfolios/P-9002/performance-history?range=1Y
+
+### Portfolio with no history -> []
+GET {{backend}}/portfolios/P-EMPTY/performance-history
+
+### Invalid range -> 400 invalid_range (no silent default)
+GET {{backend}}/portfolios/P-9001/performance-history?range=1W
+
+### Unknown portfolio -> 404
+GET {{backend}}/portfolios/UNKNOWN/performance-history
