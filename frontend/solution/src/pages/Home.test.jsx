@@ -1,5 +1,5 @@
 import { screen } from '@testing-library/react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import usePortfolios from '../portfolio/usePortfolios'
 import { SAMPLE_PORTFOLIO, makePortfolio, renderWithContext } from '../test/utils'
@@ -11,14 +11,20 @@ vi.mock('../components/PortfolioValueChart', () => ({
   default: ({ title, histories }) => <p>{`${title}: ${histories.length} accounts`}</p>,
 }))
 
+// Stand-in accounts page that shows the URL it was reached with
+function PickAccount() {
+  const { search } = useLocation()
+  return <p>{`Pick an account${search}`}</p>
+}
+
 // Home plus a stand-in accounts route to check the redirect
-function renderHome(portfolio) {
+function renderHome(portfolio, route = '/') {
   return renderWithContext(
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/accounts" element={<p>Pick an account</p>} />
+      <Route path="/accounts" element={<PickAccount />} />
     </Routes>,
-    { portfolio },
+    { portfolio, route },
   )
 }
 
@@ -30,6 +36,11 @@ describe('Home page', () => {
   test('redirects to the accounts page without a selected account', () => {
     renderHome(makePortfolio({ accountId: null }))
     expect(screen.getByText('Pick an account')).toBeInTheDocument()
+  })
+
+  test('keeps the mock query string on the redirect', () => {
+    renderHome(makePortfolio({ accountId: null }), '/?scenario=empty')
+    expect(screen.getByText('Pick an account?scenario=empty')).toBeInTheDocument()
   })
 
   test('shows the summary, value chart and holdings for the selected account', () => {

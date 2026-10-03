@@ -17,6 +17,12 @@ describe('Navbar', () => {
     renderWithContext(<Navbar />)
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
   })
+
+  test('keeps the mock query string on its links', () => {
+    renderWithContext(<Navbar />, { route: '/accounts?scenario=empty' })
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/?scenario=empty')
+    expect(screen.getByRole('link', { name: 'Accounts' })).toHaveAttribute('href', '/accounts?scenario=empty')
+  })
 })
 
 describe('Footer', () => {

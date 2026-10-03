@@ -1,5 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { fetchAccounts } from '../portfolio/api'
 import { makePortfolio, renderWithContext } from '../test/utils'
@@ -12,14 +12,20 @@ const ACCOUNTS = [
   { accountId: 'P-9002', label: 'Retirement Account', totalMarketValue: 24465 },
 ]
 
+// Stand-in dashboard that shows the URL it was reached with
+function Dashboard() {
+  const { pathname, search } = useLocation()
+  return <p>{`Dashboard at ${pathname}${search}`}</p>
+}
+
 // Accounts page plus a stand-in dashboard route to check navigation
-function renderAccounts(portfolio = makePortfolio({ accountId: null })) {
+function renderAccounts(portfolio = makePortfolio({ accountId: null }), route = '/accounts') {
   return renderWithContext(
     <Routes>
       <Route path="/accounts" element={<Accounts />} />
-      <Route path="/" element={<p>Dashboard</p>} />
+      <Route path="/" element={<Dashboard />} />
     </Routes>,
-    { portfolio, route: '/accounts' },
+    { portfolio, route },
   )
 }
 
@@ -51,7 +57,15 @@ describe('Accounts page', () => {
     expect(selectAccount).toHaveBeenCalledWith('P-9002')
 
     fireEvent.click(screen.getByRole('button', { name: 'Go to dashboard' }))
-    expect(screen.getByText('Dashboard')).toBeInTheDocument()
+    expect(screen.getByText('Dashboard at /')).toBeInTheDocument()
+  })
+
+  test('keeps the mock query string when going to the dashboard', async () => {
+    fetchAccounts.mockResolvedValue(ACCOUNTS)
+    renderAccounts(makePortfolio({ accountId: 'P-9001' }), '/accounts?scenario=empty')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Go to dashboard' }))
+    expect(screen.getByText('Dashboard at /?scenario=empty')).toBeInTheDocument()
   })
 
   test('shows an empty state', async () => {

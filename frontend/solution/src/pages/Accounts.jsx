@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { fetchAccounts } from '../portfolio/api'
 import AccountCard from '../components/AccountCard'
 import { PortfolioContext } from '../portfolio/PortfolioContext'
@@ -12,6 +12,8 @@ export default function Accounts() {
   const [error, setError] = useState(null)
   const { accountId: selectedAccountId, selectAccount } = useContext(PortfolioContext)
   const navigate = useNavigate()
+  // Kept when going to the dashboard so a mock ?scenario= stays applied
+  const { search } = useLocation()
 
   useEffect(() => {
     const controller = new AbortController()
@@ -51,7 +53,7 @@ export default function Accounts() {
         />
       ))}
       {selectedAccountId && (
-        <button type="button" className="go-to-dashboard" onClick={() => navigate('/')}>
+        <button type="button" className="go-to-dashboard" onClick={() => navigate({ pathname: '/', search })}>
           Go to dashboard
         </button>
       )}
