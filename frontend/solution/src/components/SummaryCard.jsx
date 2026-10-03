@@ -23,15 +23,17 @@ function Stat({ label, value, tone = 'neutral' }) {
   )
 }
 
-export default function SummaryCard() {
+// Shows the selected account by default; pass `summary` to show other figures (e.g. all accounts combined)
+export default function SummaryCard({ summary, loading, showTotalReturn = true }) {
   const { status, data } = useContext(PortfolioContext) ?? {}
   const { formatMoney, formatSignedMoney } = useCurrency()
+  const isLoading = summary === undefined ? status === 'loading' && !data : loading
 
-  if (status === 'loading' && !data) {
+  if (isLoading) {
     return <section className="summary-card">Loading portfolio…</section>
   }
 
-  const portfolio = data?.portfolio ?? {}
+  const portfolio = summary ?? data?.portfolio ?? {}
   // Money fields are CAD from the API; useCurrency converts them to the selected currency
   const { totalMarketValue, dayChangeAmount, dayChangePercent, totalReturnSinceInception } = portfolio
 
@@ -51,11 +53,13 @@ export default function SummaryCard() {
       <dl className="summary-card__stats">
         <Stat label="Total market value" value={formatMoney(totalMarketValue)} />
         <Stat label="Day change" value={dayChange} tone={dayTone} />
-        <Stat
-          label="Total return since inception"
-          value={withSign(totalReturn, formatPercent(totalReturn))}
-          tone={trend(totalReturn)}
-        />
+        {showTotalReturn && (
+          <Stat
+            label="Total return since inception"
+            value={withSign(totalReturn, formatPercent(totalReturn))}
+            tone={trend(totalReturn)}
+          />
+        )}
       </dl>
     </section>
   )
