@@ -148,6 +148,52 @@ body {
   border-radius: 8px;
 }
 
+.value-chart {
+  margin-top: 1rem;
+  padding: 1rem 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.value-chart__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.value-chart__title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.value-chart__ranges {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.value-chart__range {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.value-chart__range--active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.value-chart__canvas {
+  position: relative;
+  height: 300px;
+}
+
 .summary-card__title {
   margin: 0 0 1rem;
   font-size: 1.1rem;
