@@ -48,3 +48,19 @@ class ErrorResponse(ApiModel):
     message: str = Field(description="Human-readable explanation")
     request_id: str = Field(description="Matches the X-Request-ID response header")
     details: dict[str, Any] | None = None
+
+
+# --- Task 2 ---
+class Holding(ApiModel):
+    ticker: str
+    name: str
+    asset_class: str
+    quantity: float
+    cost_basis_per_share: float
+    price: float
+    previous_close_price: float
+    market_value: float
+    weight_percent: float = Field(description="Decimal share of portfolio market value, e.g. 0.5579")
+    unrealized_gain_loss: float
+    day_change_amount: float
+    day_change_percent: float | None = Field(description="Decimal; null when the previous close is 0")

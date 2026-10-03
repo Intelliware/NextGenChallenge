@@ -33,6 +33,11 @@ class InvalidPortfolioId(ApiError):
     error = "invalid_portfolio_id"
 
 
+class PortfolioNotFound(ApiError):
+    status_code = 404
+    error = "portfolio_not_found"
+
+
 def _request_id(request: Request) -> str:
     request_id = getattr(request.state, "request_id", None)
     if request_id is None:

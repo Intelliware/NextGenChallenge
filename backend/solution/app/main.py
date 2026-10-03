@@ -7,7 +7,7 @@ from app.config import Settings, get_settings
 from app.crm.client import CrmClient
 from app.errors import register_error_handlers
 from app.request_context import REQUEST_ID_HEADER, configure_logging, request_id_var, resolve_request_id
-from app.routes import health, portfolios
+from app.routes import health, holdings, portfolios
 
 
 def create_app(settings: Settings | None = None, *, crm_transport: httpx.AsyncBaseTransport | None = None) -> FastAPI:
@@ -46,6 +46,7 @@ def create_app(settings: Settings | None = None, *, crm_transport: httpx.AsyncBa
     register_error_handlers(app)
     app.include_router(health.router)
     app.include_router(portfolios.router)
+    app.include_router(holdings.router)
     return app
 
 

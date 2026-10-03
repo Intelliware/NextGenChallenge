@@ -1,6 +1,6 @@
 # Portfolio Dashboard Backend (Python / FastAPI)
 
-Status: **Task 1 (Portfolio Metadata via CRM Integration)** is complete. Other tasks are not started yet. The code is structured for Task 9 (caching) and Task 4 (auth) to slot in; see "Extending" below.
+Status: **Task 1 (Portfolio Metadata via CRM Integration)** and **Task 2 (Holdings)** are complete. Other tasks are not started yet. The code is structured for Task 9 (caching) and Task 4 (auth) to slot in; see "Extending" below.
 
 Working on this as a team? Read [TEAM-GUIDE.md](TEAM-GUIDE.md) first. It covers the pinned stack, who owns which files, coding conventions, and the decisions we need to agree on.
 
@@ -50,6 +50,7 @@ pytest -m integration         # only the live tests (start node backend/mock-crm
 | `tests/test_portfolios_api.py` | HTTP layer: every status code and error body, request ids, id validation, no detail leaks on 500, health/readiness, OpenAPI. |
 | `tests/test_end_to_end_fake_crm.py` | Full stack (route, real HTTP client, mapper) against the scenario fake CRM for every fixture and forced status. |
 | `tests/test_integration_mock_crm.py` | Live against the supplied mock: all modes, call counts, and 10 requests in `auto` mode without a crash or hang. |
+| `tests/test_holdings.py` | Holdings calculations without HTTP (P-9001 values, zero quantity, zero previous close, empty portfolio) and the endpoint (all 12 camelCase fields, JSON `null`, `[]`, 404). |
 
 ## `GET /portfolios/{id}`
 
@@ -84,6 +85,45 @@ Errors always use one shape, and `requestId` matches the `X-Request-ID` response
 | CRM returns 5xx/429 or refuses the connection (after one retry for 503 or a refused connection) | 503 + `Retry-After` | `crm_unavailable` |
 | CRM is slower than `CRM_TIMEOUT_SECONDS`, or returns 504 | 504 | `crm_timeout` |
 | Anything unexpected (no internals leaked) | 500 | `internal_error` |
+
+## `GET /portfolios/{id}/holdings`
+
+Returns every position in the portfolio as an array. Inputs (`quantity`, `costBasisPerShare`, `price`, `previousClosePrice`) come from `backend/fixtures/seed.json`; every other field is calculated on each request in `app/calculations/holdings.py`. This endpoint doesn't call the CRM.
+
+Example (`P-9002`):
+
+```json
+[
+  {
+    "ticker": "NEW",
+    "name": "New Security",
+    "assetClass": "Equity",
+    "quantity": 10.0,
+    "costBasisPerShare": 40.0,
+    "price": 50.0,
+    "previousClosePrice": 0.0,
+    "marketValue": 500.0,
+    "weightPercent": 1.0,
+    "unrealizedGainLoss": 100.0,
+    "dayChangeAmount": 500.0,
+    "dayChangePercent": null
+  }
+]
+```
+
+| Situation | Status | Response |
+| --- | --- | --- |
+| Known portfolio | 200 | Array of holdings |
+| Known portfolio with no holdings (`P-EMPTY`) | 200 | `[]` |
+| Unknown id | 404 | `portfolio_not_found` |
+
+**Holdings decisions:**
+
+- **Zero previous close:** `dayChangePercent` is `null` when `previousClosePrice` is 0 (`NEW` in `P-9002`), because a percentage change from zero is undefined. We chose `null` over `0` so clients can tell "no valid percentage" apart from "price didn't move". `dayChangeAmount` is still calculated (500). Note that `GET /portfolios/P-9002` reports `0` here, because it passes the CRM's value through; the holdings figure is our own calculation.
+- **Portfolio total:** `weightPercent` divides by the sum of this portfolio's holding market values at request time, not by the CRM's `totalMarketValue`. For the seed data they match (P-9001: 48,930). If the total is 0, every weight is 0.
+- **Zero quantity:** needs no special case. `marketValue`, `weightPercent`, `unrealizedGainLoss` and `dayChangeAmount` are all 0 (`ZERO` in `P-9001`). `dayChangePercent` is still the price change (0.2), because it doesn't depend on quantity.
+- **No rounding:** values are returned unrounded, so weights may not sum to exactly 1 and some values carry float noise (for example `-570.0000000000017`). We don't "correct" either.
+- **Empty vs unknown:** a portfolio that exists with no holdings returns `[]`; only an id missing from the seed's portfolio list returns 404.
 
 ## Design decisions and assumptions
 
@@ -156,6 +196,10 @@ app/
   crm/errors.py              CrmNotFound / CrmTimeout / CrmUnavailable / CrmBadResponse
   services/portfolio_service.py   Fetch, then map (Task 9's cache goes here)
   routes/portfolios.py, routes/health.py
+  data/seed.py               Loads backend/fixtures/seed.json once (in memory)
+  calculations/holdings.py   Pure holding calculations: market value, weight, gain/loss
+  services/holdings_service.py   404 check, then calculate
+  routes/holdings.py         GET /portfolios/{id}/holdings
 scripts/fake_crm.py          Scenario-driven fake CRM
 tests/                       pytest suites and fixtures/crm/
 ```
@@ -168,6 +212,6 @@ tests/                       pytest suites and fixtures/crm/
 
 ## Unfinished / known limitations
 
-- Tasks 2-10 are not implemented.
+- Only Tasks 1 and 2 are implemented.
 - There's no authentication yet, so the endpoint is open (Task 4).
 - There's no caching yet (Task 9): every request calls the CRM.
