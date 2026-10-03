@@ -1,37 +1,15 @@
 import { useContext } from 'react'
 import { PortfolioContext } from '../portfolio/PortfolioContext'
-
-const NOT_FOUND = 'Not found'
-
-const isNumber = (value) => typeof value === 'number' && Number.isFinite(value)
-
-function formatCurrency(value, currency) {
-  if (!isNumber(value)) return NOT_FOUND
-  try {
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency ?? 'CAD' }).format(value)
-  } catch {
-    // Unknown currency code from the API: still show a legible number
-    return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
-  }
-}
-
-// `percent` is already in percent units (0.61 => 0.61%)
-function formatPercent(percent) {
-  if (!isNumber(percent)) return NOT_FOUND
-  return `${percent.toFixed(2)}%`
-}
-
-function withSign(value, formatted) {
-  return isNumber(value) && value > 0 ? `+${formatted}` : formatted
-}
-
-// Zero and missing values are neutral, never styled positive/negative
-function trend(value) {
-  if (!isNumber(value) || value === 0) return 'neutral'
-  return value > 0 ? 'positive' : 'negative'
-}
-
-const TREND_ICON = { positive: '▲', negative: '▼', neutral: '' }
+import {
+  NOT_FOUND,
+  TREND_ICON,
+  formatCurrency,
+  formatPercent,
+  isNumber,
+  toPercent,
+  trend,
+  withSign,
+} from '../portfolio/format'
 
 function Stat({ label, value, tone = 'neutral' }) {
   return (
@@ -63,7 +41,7 @@ export default function SummaryCard() {
   )})`
 
   // totalReturnSinceInception is a fraction (0.187 => 18.70%)
-  const totalReturn = isNumber(totalReturnSinceInception) ? totalReturnSinceInception * 100 : null
+  const totalReturn = toPercent(totalReturnSinceInception)
 
   return (
     <section className="summary-card" aria-label="Portfolio summary">

@@ -1,3 +1,4 @@
+import HoldingsTable from '../components/HoldingsTable'
 import SummaryCard from '../components/SummaryCard'
 import PortfolioProvider from '../portfolio/PortfolioProvider'
 
@@ -9,6 +10,7 @@ export default function Home() {
     <PortfolioProvider accountId={DEFAULT_ACCOUNT_ID}>
       <h1>Portfolio Overview</h1>
       <SummaryCard />
+      <HoldingsTable />
     </PortfolioProvider>
   )
 }
