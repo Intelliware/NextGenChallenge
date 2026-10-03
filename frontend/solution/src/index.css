@@ -34,3 +34,38 @@ body {
   padding: 1rem 1.5rem;
   border-top: 1px solid #ddd;
 }
+
+.account-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.account-card-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: none;
+  background: #f7f7f7;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.account-card-body {
+  margin: 0;
+  padding: 0.5rem 1rem 1rem;
+}
+
+.account-card-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+}
+
+.account-card-row dd {
+  margin: 0;
+}
