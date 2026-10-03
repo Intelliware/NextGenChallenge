@@ -69,3 +69,114 @@ body {
 .account-card-row dd {
   margin: 0;
 }
+
+.summary-card {
+  padding: 1rem 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.summary-card__title {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.summary-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 0;
+}
+
+.summary-card__stat dt {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.summary-card__stat dd {
+  margin: 0.25rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-card__stat--positive dd {
+  color: #1a7f37;
+}
+
+.summary-card__stat--negative dd {
+  color: #c62828;
+}
+
+.holdings {
+  margin-top: 1.5rem;
+  padding: 1rem 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.holdings__title {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+/* Wide table scrolls inside its card instead of the page on narrow screens */
+.holdings__scroll {
+  overflow-x: auto;
+}
+
+.holdings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.holdings-table th,
+.holdings-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.holdings-table thead th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.holdings-table tbody th {
+  font-weight: normal;
+}
+
+.holdings-table__ticker {
+  display: block;
+  font-weight: 600;
+}
+
+.holdings-table__name {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.holdings-table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.holdings-table thead th:nth-child(n + 3) {
+  text-align: right;
+}
+
+.holdings-table__num--positive {
+  color: #1a7f37;
+}
+
+.holdings-table__num--negative {
+  color: #c62828;
+}
+
+.holdings-table__empty {
+  text-align: center;
+  color: #666;
+}
