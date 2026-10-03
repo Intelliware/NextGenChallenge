@@ -70,6 +70,22 @@ body {
   margin: 0;
 }
 
+.account-card--selected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.account-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 1rem;
+}
+
+.go-to-dashboard {
+  font: inherit;
+  padding: 0.5rem 1rem;
+}
+
 .summary-card {
   padding: 1rem 1.5rem;
   border: 1px solid #ddd;

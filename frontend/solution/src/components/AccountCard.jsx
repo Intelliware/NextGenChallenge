@@ -1,10 +1,10 @@
 import { useState } from 'react'
 
-export default function AccountCard({ account }) {
+export default function AccountCard({ account, isSelected, onSelect }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <section className="account-card">
+    <section className={isSelected ? 'account-card account-card--selected' : 'account-card'}>
       <button
         type="button"
         className="account-card-header"
@@ -24,6 +24,11 @@ export default function AccountCard({ account }) {
           ))}
         </dl>
       )}
+      <div className="account-card-footer">
+        <button type="button" onClick={onSelect} disabled={isSelected} aria-pressed={isSelected}>
+          {isSelected ? 'Selected' : 'Select account'}
+        </button>
+      </div>
     </section>
   )
 }
