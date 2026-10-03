@@ -1,7 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 FIXTURES_DIR = Path(__file__).resolve().parents[2] / "fixtures"
@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     history_file: Path = FIXTURES_DIR / "performance-history.json"
     seed_file: Path = FIXTURES_DIR / "seed.json"
+    api_token: SecretStr = SecretStr("superday-demo-token")
 
 
 @lru_cache

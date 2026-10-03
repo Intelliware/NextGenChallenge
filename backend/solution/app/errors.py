@@ -48,6 +48,11 @@ class HistoryUnavailable(ApiError):
     error = "history_unavailable"
 
 
+class Unauthorized(ApiError):
+    status_code = 401
+    error = "unauthorized"
+
+
 def _request_id(request: Request) -> str:
     request_id = getattr(request.state, "request_id", None)
     if request_id is None:

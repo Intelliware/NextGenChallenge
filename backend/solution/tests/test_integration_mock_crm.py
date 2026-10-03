@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
-from tests.conftest import make_settings
+from tests.conftest import AUTH_HEADERS, make_settings
 
 MOCK_CRM_URL = os.environ.get("MOCK_CRM_URL", "http://localhost:4002")
 TIMEOUT_SECONDS = 3.0
@@ -51,7 +51,7 @@ def backend():
     settings = make_settings(
         crm_base_url=MOCK_CRM_URL, crm_timeout_seconds=TIMEOUT_SECONDS, crm_retry_backoff_seconds=0.2
     )
-    with TestClient(create_app(settings)) as client:
+    with TestClient(create_app(settings), headers=AUTH_HEADERS) as client:
         yield client
 
 

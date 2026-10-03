@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from app.calculations.holdings import compute_holdings
 from app.data.seed import holdings_for
 from app.main import create_app
-from tests.conftest import make_settings
+from tests.conftest import AUTH_HEADERS, make_settings
 
 HOLDING_FIELDS = {
     "ticker", "name", "assetClass", "quantity", "costBasisPerShare", "price",
@@ -60,7 +60,7 @@ def test_no_holdings_gives_empty_list():
 
 @pytest.fixture
 def client():
-    with TestClient(create_app(make_settings())) as test_client:
+    with TestClient(create_app(make_settings()), headers=AUTH_HEADERS) as test_client:
         yield test_client
 
 

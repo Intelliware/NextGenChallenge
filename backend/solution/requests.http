@@ -1,31 +1,38 @@
 # Example requests. Use an HTTP client that supports .http files (VS Code REST Client, JetBrains),
-# or copy each request into curl.
+# or copy each request into curl. Every backend endpoint except /health and /health/ready needs the token.
 @backend = http://localhost:3000
 @crm = http://localhost:4002
 @fake = http://localhost:4003
+@token = superday-demo-token
 
 ### --- Supplied mock CRM (node backend/mock-crm.mjs) ---
 
 ### Mapped metadata
 GET {{backend}}/portfolios/P-9001
+Authorization: Bearer {{token}}
 
 ### Requested account is not first in the CRM's list
 GET {{backend}}/portfolios/P-9002
+Authorization: Bearer {{token}}
 
 ### Empty account: zeros stay zeros
 GET {{backend}}/portfolios/P-EMPTY
+Authorization: Bearer {{token}}
 
 ### Unknown account -> 404
 GET {{backend}}/portfolios/UNKNOWN
+Authorization: Bearer {{token}}
 
 ### Invalid id -> 400, CRM is not called
 GET {{backend}}/portfolios/bad%20id
+Authorization: Bearer {{token}}
 
 ### Echo a caller-supplied request id
 GET {{backend}}/portfolios/P-9001
+Authorization: Bearer {{token}}
 X-Request-ID: my-trace-123
 
-### Liveness / readiness
+### Liveness / readiness (public, no token)
 GET {{backend}}/health
 
 ###
@@ -73,21 +80,48 @@ Content-Type: application/json
 
 ### Last day: 2 points, yesterday and today
 GET {{backend}}/portfolios/P-9001/performance-history?range=1D
+Authorization: Bearer {{token}}
 
 ### Year to date: from January 1
 GET {{backend}}/portfolios/P-9001/performance-history?range=YTD
+Authorization: Bearer {{token}}
 
 ### No range means All (401 days)
 GET {{backend}}/portfolios/P-9001/performance-history
+Authorization: Bearer {{token}}
 
 ### Less history than the range: all 60 days, no padding
 GET {{backend}}/portfolios/P-9002/performance-history?range=1Y
+Authorization: Bearer {{token}}
 
 ### Portfolio with no history -> []
 GET {{backend}}/portfolios/P-EMPTY/performance-history
+Authorization: Bearer {{token}}
 
 ### Invalid range -> 400 invalid_range (no silent default)
 GET {{backend}}/portfolios/P-9001/performance-history?range=1W
+Authorization: Bearer {{token}}
 
 ### Unknown portfolio -> 404
 GET {{backend}}/portfolios/UNKNOWN/performance-history
+Authorization: Bearer {{token}}
+
+### --- Task 4: auth ---
+
+### No Authorization header -> 401 unauthorized, with WWW-Authenticate: Bearer
+GET {{backend}}/portfolios/P-9001
+
+### Token without the "Bearer " prefix -> 401 (malformed header)
+GET {{backend}}/portfolios/P-9001
+Authorization: {{token}}
+
+### Wrong token -> 401
+GET {{backend}}/portfolios/P-9001
+Authorization: Bearer wrong-token
+
+### The scheme is case-insensitive -> 200
+GET {{backend}}/portfolios/P-9001
+Authorization: bearer {{token}}
+
+### Unknown path without a token -> 401, not 404
+GET {{backend}}/nope

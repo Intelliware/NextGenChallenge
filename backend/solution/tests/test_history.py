@@ -24,7 +24,7 @@ from app.services.history_service import (
     range_start,
     utc_today,
 )
-from tests.conftest import make_settings
+from tests.conftest import AUTH_HEADERS, make_settings
 from tests.test_portfolios_api import assert_error
 
 TODAY = date(2026, 10, 3)
@@ -182,7 +182,7 @@ def client():
         {"P-9001": daily(401), "P-9002": daily(60)}, {"P-9001", "P-9002", "P-EMPTY"}, today=lambda: TODAY
     )
     app.dependency_overrides[get_history_service] = lambda: service
-    with TestClient(app, raise_server_exceptions=False) as test_client:
+    with TestClient(app, raise_server_exceptions=False, headers=AUTH_HEADERS) as test_client:
         yield test_client
 
 
@@ -240,7 +240,7 @@ def test_bad_range_is_reported_before_unknown_id(client):
 
 def test_missing_history_file_returns_503(tmp_path):
     app = create_app(make_settings(history_file=tmp_path / "missing.json"))
-    with TestClient(app, raise_server_exceptions=False) as test_client:
+    with TestClient(app, raise_server_exceptions=False, headers=AUTH_HEADERS) as test_client:
         response = test_client.get(HISTORY_URL.format("P-9001"))
     assert_error(response, 503, "history_unavailable")
 
@@ -250,7 +250,7 @@ def test_configured_files_are_read_by_the_real_provider(tmp_path):
     dates = [(today - timedelta(days=n)).isoformat() for n in (2, 1, 0)]
     path = tmp_path / "history.json"
     path.write_text(json.dumps({"P-9001": [{"date": d, "marketValue": 1.0} for d in dates]}))
-    with TestClient(create_app(make_settings(history_file=path))) as test_client:
+    with TestClient(create_app(make_settings(history_file=path)), headers=AUTH_HEADERS) as test_client:
         assert [point["date"] for point in test_client.get(HISTORY_URL.format("P-9001")).json()] == dates
         assert test_client.get(HISTORY_URL.format("P-SINGLE")).json() == []
         assert test_client.get(HISTORY_URL.format("UNKNOWN")).status_code == 404

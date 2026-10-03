@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from app.crm.errors import CrmBadResponse, CrmNotFound, CrmTimeout, CrmUnavailable
 from app.dependencies import get_crm_client
 from app.main import create_app
-from tests.conftest import load_fixture, make_settings
+from tests.conftest import AUTH_HEADERS, load_fixture, make_settings
 
 
 class FakeCrm:
@@ -37,7 +37,7 @@ def fake_crm() -> FakeCrm:
 def client(fake_crm):
     app = create_app(make_settings())
     app.dependency_overrides[get_crm_client] = lambda: fake_crm
-    with TestClient(app, raise_server_exceptions=False) as test_client:
+    with TestClient(app, raise_server_exceptions=False, headers=AUTH_HEADERS) as test_client:
         yield test_client
 
 

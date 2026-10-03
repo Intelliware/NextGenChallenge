@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 
 from app.calculations.allocation import compute_allocation
 from app.main import create_app
-from tests.conftest import make_settings
+from tests.conftest import AUTH_HEADERS, make_settings
 
 
 def holding(asset_class: str, quantity: float, price: float) -> dict:
@@ -37,7 +37,7 @@ def test_zero_total_gives_zero_percent():
 
 @pytest.fixture
 def client():
-    with TestClient(create_app(make_settings())) as test_client:
+    with TestClient(create_app(make_settings()), headers=AUTH_HEADERS) as test_client:
         yield test_client
 
 

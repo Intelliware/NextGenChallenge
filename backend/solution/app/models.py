@@ -11,6 +11,11 @@ class ApiModel(BaseModel):
 
 
 class PortfolioMetadata(ApiModel):
+    """One CRM account, mapped into our schema.
+
+    Values the CRM leaves out or sends in an unusable form are null and explained in `warnings`.
+    """
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -28,15 +33,19 @@ class PortfolioMetadata(ApiModel):
         }
     )
 
-    portfolio_id: str
-    client_id: str
-    label: str | None = Field(description="Account nickname; null if the CRM did not supply one")
-    currency: str = Field(description="ISO 4217 code; defaults to CAD (with a warning) if the CRM omits it")
-    total_market_value: float | None
-    day_change_amount: float | None
-    day_change_percent: float | None = Field(description="Decimal, e.g. 0.0032 = 0.32%")
-    total_return_since_inception: float | None = Field(description="Decimal, e.g. 0.187 = 18.7%")
-    as_of: str | None = Field(description="ISO 8601 UTC datetime the CRM produced this data")
+    portfolio_id: str = Field(description="Mapped from `acct_ref`")
+    client_id: str = Field(description="Mapped from `client_record.client_id`")
+    label: str | None = Field(description="Mapped from `acct_nickname`; null if the CRM did not supply one")
+    currency: str = Field(
+        description="Mapped from `curr_val.ccy` as an ISO 4217 code; CAD (with a warning) if the CRM omits it"
+    )
+    total_market_value: float | None = Field(description="Mapped from `curr_val.amt`")
+    day_change_amount: float | None = Field(description="Mapped from `chg_1d.amt`")
+    day_change_percent: float | None = Field(description="Mapped from `chg_1d.pct`. Decimal, e.g. 0.0032 = 0.32%")
+    total_return_since_inception: float | None = Field(
+        description="Mapped from `since_inception_pct`. Decimal, e.g. 0.187 = 18.7%"
+    )
+    as_of: str | None = Field(description="Mapped from `meta.retrieved_at`, as an ISO 8601 UTC datetime")
     warnings: list[str] = Field(
         default_factory=list,
         description="Data-quality notes about fields the CRM omitted or sent in an unusable form",
@@ -44,6 +53,8 @@ class PortfolioMetadata(ApiModel):
 
 
 class ErrorResponse(ApiModel):
+    """Every error response has this shape."""
+
     error: str = Field(description="Short machine-readable error code")
     message: str = Field(description="Human-readable explanation")
     request_id: str = Field(description="Matches the X-Request-ID response header")
