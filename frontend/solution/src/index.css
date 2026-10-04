@@ -1,0 +1,254 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.navbar nav a {
+  margin-left: 1rem;
+}
+
+.main {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #ddd;
+}
+
+.account-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.account-card-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: none;
+  background: #f7f7f7;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.account-card-body {
+  margin: 0;
+  padding: 0.5rem 1rem 1rem;
+}
+
+.account-card-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+}
+
+.account-card-row dd {
+  margin: 0;
+}
+
+/* Floating currency switch: fixed so it stays visible without scrolling */
+.currency-toggle {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1000;
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.currency-toggle:hover,
+.currency-toggle:focus-within {
+  opacity: 1;
+}
+
+.currency-toggle button {
+  min-width: 3.25rem;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  color: #222;
+  cursor: pointer;
+}
+
+.currency-toggle button[aria-pressed="true"] {
+  background: rgba(20, 20, 20, 0.85);
+  color: #fff;
+}
+
+.currency-toggle button:disabled {
+  color: #999;
+  cursor: not-allowed;
+}
+
+.currency-toggle button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Keep footer text clear of the floating switch */
+.footer {
+  padding-right: 9rem;
+}
+
+.account-card--selected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.account-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 1rem;
+}
+
+.go-to-dashboard {
+  font: inherit;
+  padding: 0.5rem 1rem;
+}
+
+.summary-card {
+  padding: 1rem 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.summary-card__title {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.summary-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 0;
+}
+
+.summary-card__stat dt {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.summary-card__stat dd {
+  margin: 0.25rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-card__stat--positive dd {
+  color: #1a7f37;
+}
+
+.summary-card__stat--negative dd {
+  color: #c62828;
+}
+
+.holdings {
+  margin-top: 1.5rem;
+  padding: 1rem 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.holdings__title {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+/* Wide table scrolls inside its card instead of the page on narrow screens */
+.holdings__scroll {
+  overflow-x: auto;
+}
+
+.holdings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.holdings-table th,
+.holdings-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.holdings-table thead th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.holdings-table tbody th {
+  font-weight: normal;
+}
+
+.holdings-table__ticker {
+  display: block;
+  font-weight: 600;
+}
+
+.holdings-table__name {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.holdings-table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.holdings-table thead th:nth-child(n + 3) {
+  text-align: right;
+}
+
+.holdings-table__num--positive {
+  color: #1a7f37;
+}
+
+.holdings-table__num--negative {
+  color: #c62828;
+}
+
+.holdings-table__empty {
+  text-align: center;
+  color: #666;
+}
